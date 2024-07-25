@@ -2,5 +2,21 @@
     {
         "username": "Lennart",
         "password": "Pass1234"
+    },
+    {
+        "username": "Paul",
+        "password": "Paul1234"
+    },
+    {
+        "username": "user",
+        "password": "password"
+    },
+    {
+        "username": "",
+        "password": ""
+    },
+    {
+        "username": "Lennart",
+        "password": "Lennart"
     }
 ]
