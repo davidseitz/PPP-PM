@@ -1,6 +1,8 @@
 import curses
 import json
 import os
+import random
+import string
 
 def print_menu(stdscr, selected_row_idx, menu):
     stdscr.clear()
@@ -85,6 +87,18 @@ def add_password(stdscr, username):
     stdscr.refresh()
     stdscr.getch()
 
+def generate_password(stdscr):
+    # Generate a random password
+    length = int(get_input(stdscr, "Enter password length: "))
+    characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(characters) for i in range(length))
+
+    stdscr.clear()
+    stdscr.addstr(1, 0, f"Generated Password: {password}")
+    stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+    stdscr.refresh()
+    stdscr.getch()
+
 def manager_menu(stdscr, username):
     menu = ["Add password", "Find password", "Edit password", "Generate password", "Back to main menu"]
     current_row_idx = 0
@@ -103,6 +117,8 @@ def manager_menu(stdscr, username):
                 break
             elif selected_option == "Add password":
                 add_password(stdscr, username)
+            elif selected_option == "Generate password":
+                generate_password(stdscr)
             else:
                 stdscr.clear()
                 stdscr.addstr(0, 0, f"You selected '{selected_option}'.")
