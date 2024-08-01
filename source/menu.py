@@ -1,3 +1,5 @@
+
+
 import curses
 import json
 import os
@@ -32,30 +34,27 @@ def get_input(stdscr, prompt):
     return user_input
 
 def save_user(username, password):
+    filename = f"{username}_user.json"
     user_data = {
         "username": username,
         "password": password
     }
 
-    if os.path.exists("user.json"):
-        with open("user.json", "r") as file:
-            users = json.load(file)
-    else:
-        users = []
-
-    users.append(user_data)
-
-    with open("user.json", "w") as file:
-        json.dump(users, file, indent=4)
+    with open(filename, "w") as file:
+        json.dump(user_data, file, indent=4)
 
 def validate_user(username, password):
-    if os.path.exists("user.json"):
-        with open("user.json", "r") as file:
-            users = json.load(file)
-            for user in users:
-                if user["username"] == username and user["password"] == password:
-                    return True
+    filename = f"{username}_user.json"
+    if os.path.exists(filename):
+        with open(filename, "r") as file:
+            user = json.load(file)
+            if user["username"] == username and user["password"] == password:
+                return True
     return False
+
+def user_exists(username):
+    filename = f"{username}_user.json"
+    return os.path.exists(filename)
 
 def save_password(username, site, new_password):
     filename = f"{username}_passwords.json"
@@ -160,7 +159,6 @@ def generate_password(stdscr):
     stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
-
 
 def edit_password(stdscr, username, site):
     new_password = get_input(stdscr, "Enter the new password: ")
@@ -294,16 +292,22 @@ def main(stdscr):
                     stdscr.getch()
             elif selected_option == "Register":
                 username = get_input(stdscr, "Enter new username: ")
-                password = get_input(stdscr, "Enter new password: ")
 
-                save_user(username, password)
-
-                stdscr.clear()
-                stdscr.addstr(1, 0, "User registered successfully!")
-                stdscr.addstr(2, 0, "Press any key to return to the main menu.")
-                stdscr.refresh()
-                stdscr.getch()
+                if user_exists(username):
+                    stdscr.clear()
+                    stdscr.addstr(1, 0, "Username already exists. Please choose a different username.")
+                    stdscr.addstr(2, 0, "Press any key to return to the main menu.")
+                    stdscr.refresh()
+                    stdscr.getch()
+                else:
+                    password = get_input(stdscr, "Enter new password: ")
+                    save_user(username, password)
+                    
+                    stdscr.clear()
+                    stdscr.addstr(1, 0, "User registered successfully!")
+                    stdscr.addstr(2, 0, "Press any key to return to the main menu.")
+                    stdscr.refresh()
+                    stdscr.getch()
 
 curses.wrapper(main)
-
 
