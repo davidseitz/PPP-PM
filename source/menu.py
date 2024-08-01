@@ -104,9 +104,55 @@ def add_password(stdscr, username):
     stdscr.getch()
 
 def generate_password(stdscr):
-    # Generate a random password
     length = int(get_input(stdscr, "Enter password length: "))
-    characters = string.ascii_letters + string.digits + string.punctuation
+    
+    options = [
+        "Include uppercase letters",
+        "Include lowercase letters",
+        "Include digits",
+        "Include special characters"
+    ]
+    
+    selected_options = [False] * len(options)
+    current_option_idx = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Select character types (press Space to choose and Enter to confirm):")
+        for idx, option in enumerate(options):
+            if selected_options[idx]:
+                option_text = "[X] " + option
+            else:
+                option_text = "[ ] " + option
+            if idx == current_option_idx:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(1 + idx, 0, option_text)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(1 + idx, 0, option_text)
+        stdscr.refresh()
+        
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_option_idx > 0:
+            current_option_idx -= 1
+        elif key == curses.KEY_DOWN and current_option_idx < len(options) - 1:
+            current_option_idx += 1
+        elif key == ord(' '):
+            selected_options[current_option_idx] = not selected_options[current_option_idx]
+        elif key == ord('\n'):
+            if any(selected_options):
+                break
+    
+    characters = ''
+    if selected_options[0]:  # Include uppercase letters
+        characters += string.ascii_uppercase
+    if selected_options[1]:  # Include lowercase letters
+        characters += string.ascii_lowercase
+    if selected_options[2]:  # Include digits
+        characters += string.digits
+    if selected_options[3]:  # Include special characters
+        characters += string.punctuation
+
     password = ''.join(random.choice(characters) for i in range(length))
 
     stdscr.clear()
@@ -114,6 +160,7 @@ def generate_password(stdscr):
     stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
+
 
 def edit_password(stdscr, username, site):
     new_password = get_input(stdscr, "Enter the new password: ")
