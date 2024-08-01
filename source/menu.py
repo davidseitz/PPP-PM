@@ -1,3 +1,20 @@
+"""
+This module provides a command-line password manager using curses for the UI.
+
+Functions:
+- print_menu: Displays a menu in the terminal.
+- get_input: Prompts the user for input.
+- save_user: Saves user information to a JSON file.
+- validate_user: Validates user login credentials.
+- user_exists: Checks if a user already exists.
+- save_password: Saves or updates a user's password for a site.
+- add_password: Adds a new password for a site.
+- generate_password: Generates a random password based on user criteria.
+- edit_password: Edits an existing password.
+- delete_password: Deletes a password entry.
+- find_password: Finds and displays a password for a site.
+- main: The main function to run the password manager.
+"""
 import curses
 import json
 import os
@@ -8,7 +25,16 @@ import time
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
 
+
 def print_menu(stdscr, selected_row_idx, menu):
+    """
+    Displays a menu in the terminal.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - selected_row_idx: Index of the currently selected row.
+    - menu: List of menu items to display.
+    """
     stdscr.clear()
     h, w = stdscr.getmaxyx()
 
@@ -23,7 +49,18 @@ def print_menu(stdscr, selected_row_idx, menu):
             stdscr.addstr(y, x, row)
     stdscr.refresh()
 
+
 def get_input(stdscr, prompt):
+    """
+    Prompts the user for input.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - prompt: The prompt message to display.
+
+    Returns:
+    - user_input: The input from the user as a string.
+    """
     stdscr.clear()
     h, w = stdscr.getmaxyx()
     stdscr.addstr(h // 2 - 1, w // 2 - len(prompt) // 2, prompt)
@@ -31,26 +68,45 @@ def get_input(stdscr, prompt):
 
     input_win = curses.newwin(1, len(prompt) + 10, h // 2, w // 2 - len(prompt) // 2)
     curses.echo()  # Enable input echoing
-    user_input = input_win.getstr().decode('utf-8')
+    user_input = input_win.getstr().decode("utf-8")
     curses.noecho()  # Disable input echoing
     return user_input
 
+
 def save_user(username, password):
+    """
+    Saves user information to a JSON file.
+
+    Parameters:
+    - username: The username of the user.
+    - password: The password of the user.
+    """
     filename = f"{username}_user.json"
     user_data = {
         "username": username,
         "password": password,
         "failed_attempts": 0,
-        "lockout_time": 0
+        "lockout_time": 0,
     }
 
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump(user_data, file, indent=4)
 
+
 def validate_user(username, password):
+    """
+    Validates user login credentials.
+
+    Parameters:
+    - username: The username of the user.
+    - password: The password of the user.
+
+    Returns:
+    - A tuple containing a boolean indicating if the validation was successful and a message.
+    """
     filename = f"{username}_user.json"
     if os.path.exists(filename):
-        with open(filename, "r") as file:
+        with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
             current_time = time.time()
 
@@ -60,27 +116,50 @@ def validate_user(username, password):
             if user["username"] == username and user["password"] == password:
                 user["failed_attempts"] = 0
                 user["lockout_time"] = 0
-                with open(filename, "w") as file:
+                with open(filename, "w", encoding="utf-8") as file:
                     json.dump(user, file, indent=4)
                 return True, "Login successful."
-            else:
-                user["failed_attempts"] = user.get("failed_attempts", 0) + 1
-                if user["failed_attempts"] >= MAX_ATTEMPTS:
-                    user["lockout_time"] = current_time + LOCKOUT_TIME
-                with open(filename, "w") as file:
-                    json.dump(user, file, indent=4)
-                return False, "Invalid username or password."
+
+            user["failed_attempts"] = user.get("failed_attempts", 0) + 1
+            if user["failed_attempts"] >= MAX_ATTEMPTS:
+                user["lockout_time"] = current_time + LOCKOUT_TIME
+            with open(filename, "w", encoding="utf-8") as file:
+                json.dump(user, file, indent=4)
+            return False, "Invalid username or password."
+
     return False, "Invalid username or password."
 
+
 def user_exists(username):
+    """
+    Checks if a user already exists.
+
+    Parameters:
+    - username: The username to check.
+
+    Returns:
+    - True if the user exists, False otherwise.
+    """
     filename = f"{username}_user.json"
     return os.path.exists(filename)
 
+
 def save_password(username, site, new_password):
+    """
+    Saves or updates a user's password for a site.
+
+    Parameters:
+    - username: The username of the user.
+    - site: The site for which the password is being saved.
+    - new_password: The new password to save.
+
+    Returns:
+    - True if the password was saved successfully, False otherwise.
+    """
     filename = f"{username}_passwords.json"
 
     if os.path.exists(filename):
-        with open(filename, "r") as file:
+        with open(filename, "r", encoding="utf-8") as file:
             passwords = json.load(file)
     else:
         passwords = []
@@ -93,18 +172,20 @@ def save_password(username, site, new_password):
             entry["password"] = new_password
             break
     else:
-        passwords.append({
-            "site": site,
-            "password": new_password,
-            "old_passwords": []
-        })
-
-    with open(filename, "w") as file:
+        passwords.append({"site": site, "password": new_password, "old_passwords": []})
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump(passwords, file, indent=4)
-    
     return True
 
+
 def add_password(stdscr, username):
+    """
+    Adds a new password for a site.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - username: The username of the user.
+    """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
     password = get_input(stdscr, "Enter the password: ")
 
@@ -122,16 +203,23 @@ def add_password(stdscr, username):
     stdscr.refresh()
     stdscr.getch()
 
+
 def generate_password(stdscr):
+    """
+    Generates a random password based on user criteria.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    """
     length = int(get_input(stdscr, "Enter password length: "))
-    
+
     options = [
         "Include uppercase letters",
         "Include lowercase letters",
         "Include digits",
-        "Include special characters"
+        "Include special characters",
     ]
-    
+
     selected_options = [False] * len(options)
     current_option_idx = 0
 
@@ -150,19 +238,19 @@ def generate_password(stdscr):
             else:
                 stdscr.addstr(1 + idx, 0, option_text)
         stdscr.refresh()
-        
+
         key = stdscr.getch()
         if key == curses.KEY_UP and current_option_idx > 0:
             current_option_idx -= 1
         elif key == curses.KEY_DOWN and current_option_idx < len(options) - 1:
             current_option_idx += 1
-        elif key == ord(' '):
+        elif key == ord(" "):
             selected_options[current_option_idx] = not selected_options[current_option_idx]
-        elif key == ord('\n'):
+        elif key == ord("\n"):
             if any(selected_options):
                 break
-    
-    characters = ''
+
+    characters = ""
     if selected_options[0]:  # Include uppercase letters
         characters += string.ascii_uppercase
     if selected_options[1]:  # Include lowercase letters
@@ -172,20 +260,65 @@ def generate_password(stdscr):
     if selected_options[3]:  # Include special characters
         characters += string.punctuation
 
-    password = ''.join(random.choice(characters) for i in range(length))
+    password = "".join(random.choice(characters) for i in range(length))
 
     stdscr.clear()
-    stdscr.addstr(1, 0, f"Generated Password: {password}")
+    stdscr.addstr(1, 0, f"Generated password: {password}")
     stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 
-def edit_password(stdscr, username, site):
-    new_password = get_input(stdscr, "Enter the new password: ")
 
-    if not save_password(username, site, new_password):
+def edit_password(stdscr, username):
+    """
+    Edits an existing password.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - username: The username of the user.
+    """
+    filename = f"{username}_passwords.json"
+
+    if not os.path.exists(filename):
         stdscr.clear()
-        stdscr.addstr(1, 0, "New password cannot be one of the old passwords.")
+        stdscr.addstr(1, 0, "No passwords found.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
+
+    with open(filename, "r", encoding="utf-8") as file:
+        passwords = json.load(file)
+
+    sites = [entry["site"] for entry in passwords]
+
+    current_site_idx = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Select a site to edit its password (use arrow keys and press Enter to select):")
+        for idx, site in enumerate(sites):
+            if idx == current_site_idx:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(1 + idx, 0, site)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(1 + idx, 0, site)
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_site_idx > 0:
+            current_site_idx -= 1
+        elif key == curses.KEY_DOWN and current_site_idx < len(sites) - 1:
+            current_site_idx += 1
+        elif key == ord("\n"):
+            break
+
+    new_password = get_input(stdscr, f"Enter the new password for {sites[current_site_idx]}: ")
+
+    if not save_password(username, sites[current_site_idx], new_password):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
         stdscr.getch()
@@ -197,17 +330,56 @@ def edit_password(stdscr, username, site):
     stdscr.refresh()
     stdscr.getch()
 
-def delete_password(stdscr, username, site):
+
+def delete_password(stdscr, username):
+    """
+    Deletes a password entry.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - username: The username of the user.
+    """
     filename = f"{username}_passwords.json"
 
-    if os.path.exists(filename):
-        with open(filename, "r") as file:
-            passwords = json.load(file)
-        
-        passwords = [entry for entry in passwords if entry["site"] != site]
+    if not os.path.exists(filename):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "No passwords found.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
 
-        with open(filename, "w") as file:
-            json.dump(passwords, file, indent=4)
+    with open(filename, "r", encoding="utf-8") as file:
+        passwords = json.load(file)
+
+    sites = [entry["site"] for entry in passwords]
+
+    current_site_idx = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Select a site to delete its password (use arrow keys and press Enter to select):")
+        for idx, site in enumerate(sites):
+            if idx == current_site_idx:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(1 + idx, 0, site)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(1 + idx, 0, site)
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_site_idx > 0:
+            current_site_idx -= 1
+        elif key == curses.KEY_DOWN and current_site_idx < len(sites) - 1:
+            current_site_idx += 1
+        elif key == ord("\n"):
+            break
+
+    passwords = [entry for entry in passwords if entry["site"] != sites[current_site_idx]]
+
+    with open(filename, "w", encoding="utf-8") as file:
+        json.dump(passwords, file, indent=4)
 
     stdscr.clear()
     stdscr.addstr(1, 0, "Password deleted!")
@@ -215,120 +387,138 @@ def delete_password(stdscr, username, site):
     stdscr.refresh()
     stdscr.getch()
 
+
 def find_password(stdscr, username):
-    site = get_input(stdscr, "Enter the name/web-URL/site to find: ")
+    """
+    Finds and displays a password for a site.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - username: The username of the user.
+    """
+    site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
     filename = f"{username}_passwords.json"
 
-    if os.path.exists(filename):
-        with open(filename, "r") as file:
-            passwords = json.load(file)
-            for entry in passwords:
-                if entry["site"] == site:
-                    stdscr.clear()
-                    stdscr.addstr(1, 0, f"Password for {site}: {entry['password']}")
-                    stdscr.addstr(2, 0, "Press any key to continue.")
-                    stdscr.refresh()
-                    stdscr.getch()
-                    
-                    sub_menu = ["Edit password", "Delete password", "Back to manager menu"]
-                    current_row_idx = 0
+    if not os.path.exists(filename):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "No passwords found.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
 
-                    while True:
-                        print_menu(stdscr, current_row_idx, sub_menu)
-                        key = stdscr.getch()
+    with open(filename, "r", encoding="utf-8") as file:
+        passwords = json.load(file)
 
-                        if key == curses.KEY_UP and current_row_idx > 0:
-                            current_row_idx -= 1
-                        elif key == curses.KEY_DOWN and current_row_idx < len(sub_menu) - 1:
-                            current_row_idx += 1
-                        elif key == ord('\n'):
-                            selected_option = sub_menu[current_row_idx]
-                            if selected_option == "Back to manager menu":
-                                return
-                            elif selected_option == "Edit password":
-                                edit_password(stdscr, username, site)
-                            elif selected_option == "Delete password":
-                                delete_password(stdscr, username, site)
-                            break
-                    return
+    for entry in passwords:
+        if entry["site"] == site:
+            stdscr.clear()
+            stdscr.addstr(1, 0, f"Password for {site}: {entry['password']}")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+            return
+
     stdscr.clear()
-    stdscr.addstr(1, 0, f"No password found for {site}.")
+    stdscr.addstr(1, 0, "Password not found.")
     stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 
+
 def main(stdscr):
+    """
+    The main function to run the password manager.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    """
     curses.curs_set(0)
+    curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
-    current_row_idx = 0
-    main_menu = ["Login", "Register", "Exit"]
+    current_row = 0
+
+    menu = ["Login", "Register", "Exit"]
 
     while True:
-        print_menu(stdscr, current_row_idx, main_menu)
+        print_menu(stdscr, current_row, menu)
         key = stdscr.getch()
 
-        if key == curses.KEY_UP and current_row_idx > 0:
-            current_row_idx -= 1
-        elif key == curses.KEY_DOWN and current_row_idx < len(main_menu) - 1:
-            current_row_idx += 1
-        elif key == ord('\n'):
-            selected_option = main_menu[current_row_idx]
-
-            if selected_option == "Exit":
-                break
-            elif selected_option == "Login":
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
+            current_row += 1
+        elif key == ord("\n"):
+            if current_row == 0:
                 username = get_input(stdscr, "Enter username: ")
                 password = get_input(stdscr, "Enter password: ")
-
                 valid, message = validate_user(username, password)
                 stdscr.clear()
                 stdscr.addstr(1, 0, message)
-                if valid:
-                    manager_menu = ["Add password", "Find password", "Generate password", "Logout"]
-                    current_manager_idx = 0
-
-                    while True:
-                        print_menu(stdscr, current_manager_idx, manager_menu)
-                        key = stdscr.getch()
-
-                        if key == curses.KEY_UP and current_manager_idx > 0:
-                            current_manager_idx -= 1
-                        elif key == curses.KEY_DOWN and current_manager_idx < len(manager_menu) - 1:
-                            current_manager_idx += 1
-                        elif key == ord('\n'):
-                            manager_option = manager_menu[current_manager_idx]
-
-                            if manager_option == "Logout":
-                                break
-                            elif manager_option == "Add password":
-                                add_password(stdscr, username)
-                            elif manager_option == "Find password":
-                                find_password(stdscr, username)
-                            elif manager_option == "Generate password":
-                                generate_password(stdscr)
-                else:
-                    stdscr.addstr(2, 0, "Press any key to return to the main menu.")
                 stdscr.refresh()
                 stdscr.getch()
-            elif selected_option == "Register":
-                username = get_input(stdscr, "Enter new username: ")
-
+                if valid:
+                    password_manager(stdscr, username)
+            elif current_row == 1:
+                username = get_input(stdscr, "Enter username: ")
                 if user_exists(username):
                     stdscr.clear()
-                    stdscr.addstr(1, 0, "Username already exists. Please choose a different username.")
-                    stdscr.addstr(2, 0, "Press any key to return to the main menu.")
+                    stdscr.addstr(1, 0, "Username already exists.")
                     stdscr.refresh()
                     stdscr.getch()
                 else:
-                    password = get_input(stdscr, "Enter new password: ")
+                    password = get_input(stdscr, "Enter password: ")
                     save_user(username, password)
-                    
                     stdscr.clear()
-                    stdscr.addstr(1, 0, "User registered successfully!")
-                    stdscr.addstr(2, 0, "Press any key to return to the main menu.")
+                    stdscr.addstr(1, 0, "User registered successfully.")
                     stdscr.refresh()
                     stdscr.getch()
+            elif current_row == 2:
+                break
 
-curses.wrapper(main)
 
+def password_manager(stdscr, username):
+    """
+    The password manager menu for a logged-in user.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - username: The username of the logged-in user.
+    """
+    current_row = 0
+
+    menu = [
+        "Add Password",
+        "Generate Password",
+        "Edit Password",
+        "Delete Password",
+        "Find Password",
+        "Logout",
+    ]
+
+    while True:
+        print_menu(stdscr, current_row, menu)
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
+            current_row += 1
+        elif key == ord("\n"):
+            if current_row == 0:
+                add_password(stdscr, username)
+            elif current_row == 1:
+                generate_password(stdscr)
+            elif current_row == 2:
+                edit_password(stdscr, username)
+            elif current_row == 3:
+                delete_password(stdscr, username)
+            elif current_row == 4:
+                find_password(stdscr, username)
+            elif current_row == 5:
+                break
+
+
+if __name__ == "__main__":
+    curses.wrapper(main)
