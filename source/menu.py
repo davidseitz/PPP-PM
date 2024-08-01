@@ -1,10 +1,12 @@
-
-
 import curses
 import json
 import os
 import random
 import string
+import time
+
+MAX_ATTEMPTS = 3
+LOCKOUT_TIME = 60  # 1 minute
 
 def print_menu(stdscr, selected_row_idx, menu):
     stdscr.clear()
@@ -37,7 +39,9 @@ def save_user(username, password):
     filename = f"{username}_user.json"
     user_data = {
         "username": username,
-        "password": password
+        "password": password,
+        "failed_attempts": 0,
+        "lockout_time": 0
     }
 
     with open(filename, "w") as file:
@@ -48,9 +52,25 @@ def validate_user(username, password):
     if os.path.exists(filename):
         with open(filename, "r") as file:
             user = json.load(file)
+            current_time = time.time()
+
+            if current_time < user.get("lockout_time", 0):
+                return False, "Account locked due to multiple failed attempts. Try again later."
+
             if user["username"] == username and user["password"] == password:
-                return True
-    return False
+                user["failed_attempts"] = 0
+                user["lockout_time"] = 0
+                with open(filename, "w") as file:
+                    json.dump(user, file, indent=4)
+                return True, "Login successful."
+            else:
+                user["failed_attempts"] = user.get("failed_attempts", 0) + 1
+                if user["failed_attempts"] >= MAX_ATTEMPTS:
+                    user["lockout_time"] = current_time + LOCKOUT_TIME
+                with open(filename, "w") as file:
+                    json.dump(user, file, indent=4)
+                return False, "Invalid username or password."
+    return False, "Invalid username or password."
 
 def user_exists(username):
     filename = f"{username}_user.json"
@@ -261,7 +281,10 @@ def main(stdscr):
                 username = get_input(stdscr, "Enter username: ")
                 password = get_input(stdscr, "Enter password: ")
 
-                if validate_user(username, password):
+                valid, message = validate_user(username, password)
+                stdscr.clear()
+                stdscr.addstr(1, 0, message)
+                if valid:
                     manager_menu = ["Add password", "Find password", "Generate password", "Logout"]
                     current_manager_idx = 0
 
@@ -285,11 +308,9 @@ def main(stdscr):
                             elif manager_option == "Generate password":
                                 generate_password(stdscr)
                 else:
-                    stdscr.clear()
-                    stdscr.addstr(1, 0, "Invalid username or password.")
                     stdscr.addstr(2, 0, "Press any key to return to the main menu.")
-                    stdscr.refresh()
-                    stdscr.getch()
+                stdscr.refresh()
+                stdscr.getch()
             elif selected_option == "Register":
                 username = get_input(stdscr, "Enter new username: ")
 

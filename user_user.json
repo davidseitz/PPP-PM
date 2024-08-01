@@ -1,4 +1,6 @@
 {
     "username": "user",
-    "password": "password2"
+    "password": "password2",
+    "failed_attempts": 3,
+    "lockout_time": 1722495931.9822528
 }
