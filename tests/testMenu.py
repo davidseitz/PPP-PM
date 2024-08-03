@@ -1,17 +1,16 @@
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 import json
-import curses
 import time
-import menu  # Assuming your module is named menu
+from source.menu import *
 
-class TestPasswordManager(unittest.TestCase):
+class testMenu(unittest.TestCase):
 
-    @patch("menu.open", new_callable=mock_open, read_data='{}')
+    @patch("builtins.open", new_callable=mock_open, read_data='{}')
     def test_save_user(self, mock_file):
         username = "testuser"
         password = "testpass"
-        menu.save_user(username, password)
+        save_user(username, password)
         mock_file.assert_called_with(f"{username}_user.json", "w", encoding="utf-8")
         handle = mock_file()
         written_data = ''.join(call.args[0] for call in handle.write.call_args_list)
@@ -19,37 +18,37 @@ class TestPasswordManager(unittest.TestCase):
         self.assertEqual(saved_data["username"], username)
         self.assertEqual(saved_data["password"], password)
 
-    @patch("menu.open", new_callable=mock_open, read_data=json.dumps({
+    @patch("builtins.open", new_callable=mock_open, read_data=json.dumps({
         "username": "testuser", "password": "testpass", "failed_attempts": 0, "lockout_time": 0
     }))
-    @patch("menu.time.time", return_value=time.time())
-    def test_validate_user_success(self, mock_time, mock_file):
+    @patch("time.time", return_value=time.time())
+    def test_validate_user_success(self):
         username = "testuser"
         password = "testpass"
-        result, message = menu.validate_user(username, password)
+        result, message = validate_user(username, password)
         self.assertTrue(result)
         self.assertEqual(message, "Login successful.")
 
-    @patch("menu.open", new_callable=mock_open, read_data=json.dumps({
+    @patch("builtins.open", new_callable=mock_open, read_data=json.dumps({
         "username": "testuser", "password": "wrongpass", "failed_attempts": 0, "lockout_time": 0
     }))
-    @patch("menu.time.time", return_value=time.time())
-    def test_validate_user_fail(self, mock_time, mock_file):
+    @patch("time.time", return_value=time.time())
+    def test_validate_user_fail(self):
         username = "testuser"
         password = "testpass"
-        result, message = menu.validate_user(username, password)
+        result, message = validate_user(username, password)
         self.assertFalse(result)
         self.assertEqual(message, "Invalid username or password.")
 
-    @patch("menu.os.path.exists", return_value=True)
-    @patch("menu.open", new_callable=mock_open, read_data=json.dumps([{
+    @patch("os.path.exists", return_value=True)
+    @patch("builtins.open", new_callable=mock_open, read_data=json.dumps([{
         "site": "example.com", "password": "oldpassword", "old_passwords": []
     }]))
-    def test_save_password_update(self, mock_file, mock_exists):
+    def test_save_password_update(self, mock_file):
         username = "testuser"
         site = "example.com"
         new_password = "newpassword"
-        result = menu.save_password(username, site, new_password)
+        result = save_password(username, site, new_password)
         self.assertTrue(result)
         handle = mock_file()
         written_data = ''.join(call.args[0] for call in handle.write.call_args_list)
@@ -57,13 +56,13 @@ class TestPasswordManager(unittest.TestCase):
         self.assertEqual(saved_data[0]["password"], new_password)
         self.assertIn("oldpassword", saved_data[0]["old_passwords"])
 
-    @patch("menu.os.path.exists", return_value=False)
-    @patch("menu.open", new_callable=mock_open)
-    def test_save_password_new(self, mock_file, mock_exists):
+    @patch("os.path.exists", return_value=False)
+    @patch("builtins.open", new_callable=mock_open)
+    def test_save_password_new(self, mock_file):
         username = "testuser"
         site = "newsite.com"
         new_password = "newpassword"
-        result = menu.save_password(username, site, new_password)
+        result = save_password(username, site, new_password)
         self.assertTrue(result)
         handle = mock_file()
         written_data = ''.join(call.args[0] for call in handle.write.call_args_list)
@@ -72,39 +71,38 @@ class TestPasswordManager(unittest.TestCase):
         self.assertEqual(saved_data[0]["password"], new_password)
         self.assertEqual(saved_data[0]["old_passwords"], [])
 
-    @patch("menu.os.path.exists", return_value=True)
-    def test_user_exists(self, mock_exists):
+    @patch("os.path.exists", return_value=True)
+    def test_user_exists(self):
         username = "testuser"
-        self.assertTrue(menu.user_exists(username))
+        self.assertTrue(user_exists(username))
 
-    @patch("menu.os.path.exists", return_value=False)
-    def test_user_not_exists(self, mock_exists):
+    @patch("os.path.exists", return_value=False)
+    def test_user_not_exists(self):
         username = "newuser"
-        self.assertFalse(menu.user_exists(username))
+        self.assertFalse(user_exists(username))
 
     @patch("menu.get_input", return_value="example.com")
     @patch("menu.save_password", return_value=True)
-    def test_add_password(self, mock_save_password, mock_get_input):
+    def test_add_password(self, mock_save_password):
         stdscr = MagicMock()
         username = "testuser"
-        menu.add_password(stdscr, username)
+        add_password(stdscr, username)
         self.assertTrue(mock_save_password.called)
 
     @patch("menu.get_input", return_value="16")
-    @patch("menu.curses.newwin")
-    def test_generate_password(self, mock_newwin, mock_get_input):
+    @patch("curses.newwin")
+    def test_generate_password(self, mock_newwin):
         stdscr = MagicMock()
         mock_win = MagicMock()
         mock_newwin.return_value = mock_win
 
-        with patch('menu.curses.initscr', return_value=stdscr):
-            with patch('menu.curses.start_color'):
-                with patch('menu.curses.init_pair'):
-                    with patch('menu.curses.color_pair', return_value=1):
-                        menu.generate_password(stdscr)
+        with patch('curses.initscr', return_value=stdscr):
+            with patch('curses.start_color'):
+                with patch('curses.init_pair'):
+                    with patch('curses.color_pair', return_value=1):
+                        generate_password(stdscr)
                         stdscr.addstr.assert_any_call(1, 0, "Generated password:")
 
-    # Additional tests for edit_password, delete_password, find_password, etc.
 
 if __name__ == "__main__":
     unittest.main()
