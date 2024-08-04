@@ -5,7 +5,7 @@ Functions:
 - print_menu: Displays a menu in the terminal.
 - get_input: Prompts the user for input.
 - validateUser: Validates user login credentials.
-- add_password: Adds a new password for a site.
+- add_site_password: Adds a new password for a site.
 - generate_password: Generates a random password based on user criteria.
 - edit_password: Edits an existing password.
 - delete_password: Deletes a password entry.
@@ -69,7 +69,7 @@ def get_input(stdscr, prompt):
 
 
 
-def add_password(stdscr, username):
+def add_site_password(stdscr, username):
     """
     Adds a new password for a site.
 
@@ -79,7 +79,37 @@ def add_password(stdscr, username):
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
     password = get_input(stdscr, "Enter the password: ")
+    if get_input(stdscr, "Re-enter the password: ") != password:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Passwords do not match.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
+    
+    from .checkPassword import checkPassword
 
+    if not checkPassword(password):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Password may be insecure.")
+        stdscr.addstr(2, 0, "To ensure security, please use a password with at least 12 characters.")
+        stdscr.addstr(3, 0, "Including uppercase and lowercase letters, digits, and special characters.")
+        stdscr.addstr(4, 0, "You're password may also have appreaed on the Have I been Pwned database.")
+        stdscr.addstr(5, 0, "Do you want to continue? (y/n)")
+        answer: bool = False
+        while True:
+            key = stdscr.getch()
+            if key == ord("y"):
+                answer = True
+                break
+            elif key == ord("n"):
+                answer = False
+                break
+        stdscr.refresh()
+        stdscr.getch()  
+        if not answer:
+            return
+          
     if not saveSitePassword(username, site, password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
@@ -155,7 +185,7 @@ def generate_password(stdscr):
 
     stdscr.clear()
     stdscr.addstr(1, 0, f"Generated password: {password}")
-    stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+    stdscr.addstr(3, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 
@@ -398,7 +428,7 @@ def password_manager(stdscr, username):
             current_row += 1
         elif key == ord("\n"):
             if current_row == 0:
-                add_password(stdscr, username)
+                add_site_password(stdscr, username)
             elif current_row == 1:
                 generate_password(stdscr)
             elif current_row == 2:
