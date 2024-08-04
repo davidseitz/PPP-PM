@@ -18,7 +18,7 @@ import os
 import random
 import string
 
-from .userManagement import saveUser, validateUser, userExists, savePassword
+from .userManagement import saveUser, validateUser, userExists, saveSitePassword
 
 
 def print_menu(stdscr, selected_row_idx, menu):
@@ -80,7 +80,7 @@ def add_password(stdscr, username):
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
     password = get_input(stdscr, "Enter the password: ")
 
-    if not savePassword(username, site, password):
+    if not saveSitePassword(username, site, password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -207,7 +207,7 @@ def edit_password(stdscr, username):
 
     new_password = get_input(stdscr, f"Enter the new password for {sites[current_site_idx]}: ")
 
-    if not savePassword(username, sites[current_site_idx], new_password):
+    if not saveSitePassword(username, sites[current_site_idx], new_password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")

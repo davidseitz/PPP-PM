@@ -76,7 +76,7 @@ def userExists(username):
     return os.path.exists(filename)
 
 
-def savePassword(username, site, newPassword):
+def saveSitePassword(username :str, site :str, newPassword :str) -> bool:
     """
     Saves or updates a user's password for a site.
 
@@ -89,12 +89,12 @@ def savePassword(username, site, newPassword):
     - True if the password was saved successfully, False otherwise.
     """
     filename = f"{username}_passwords.json"
-
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             passwords = json.load(file)
     else:
         passwords = []
+        return False # User does not exist
 
     for entry in passwords:
         if entry["site"] == site:
