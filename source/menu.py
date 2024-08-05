@@ -18,8 +18,10 @@ import os
 import random
 import string
 
-from .userManagement import saveUser, validateUser, userExists, saveSitePassword
+from source.DiskManagement import getFilepath, loadFromDisk, saveToDisk
 
+from .userManagement import saveUser, validateUser, userExists, saveSitePassword
+from .entry import entry
 
 def print_menu(stdscr, selected_row_idx, menu):
     """
@@ -69,15 +71,17 @@ def get_input(stdscr, prompt):
 
 
 
-def add_site_password(stdscr, username):
+def add_site_password(stdscr,username, userEntries):
     """
     Adds a new password for a site.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - userEntries: A list of the users entries.
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
+    user = get_input(stdscr, "Enter the username: ")
     password = get_input(stdscr, "Enter the password: ")
     if get_input(stdscr, "Re-enter the password: ") != password:
         stdscr.clear()
@@ -86,6 +90,7 @@ def add_site_password(stdscr, username):
         stdscr.refresh()
         stdscr.getch()
         return
+    note = get_input(stdscr, "Enter any notes: ")
     
     from .checkPassword import checkPassword
 
@@ -109,20 +114,28 @@ def add_site_password(stdscr, username):
         stdscr.getch()  
         if not answer:
             return
-          
-    if not saveSitePassword(username, site, password):
+    e = entry(site, password, user, note)
+    if not e in userEntries:
+        userEntries.append(e)       
+    else:
         stdscr.clear()
-        stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
+        stdscr.addstr(1, 0, f"Entry for website {site} already exists.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
         stdscr.getch()
         return
 
     stdscr.clear()
-    stdscr.addstr(1, 0, "Password saved!")
-    stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
-    stdscr.refresh()
-    stdscr.getch()
+    if saveToDisk(username, userEntries):
+        stdscr.addstr(1, 0, "Entry saved!")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+    else:
+        stdscr.addstr(1, 0, "Failed to save entry.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
 
 
 def generate_password(stdscr):
@@ -190,126 +203,160 @@ def generate_password(stdscr):
     stdscr.getch()
 
 
-def edit_password(stdscr, username):
+def edit_password(stdscr, username: str, userEntries: list) -> None:
     """
     Edits an existing password.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - userEntries: A list of the users entries.
     """
-    filename = f"{username}_passwords.json"
-
-    if not os.path.exists(filename):
-        stdscr.clear()
-        stdscr.addstr(1, 0, "No passwords found.")
-        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
-        stdscr.refresh()
-        stdscr.getch()
-        return
-
-    with open(filename, "r", encoding="utf-8") as file:
-        passwords = json.load(file)
-
-    sites = [entry["site"] for entry in passwords]
-
-    current_site_idx = 0
-
-    while True:
-        stdscr.clear()
-        stdscr.addstr(0, 0, "Select a site to edit its password (use arrow keys and press Enter to select):")
-        for idx, site in enumerate(sites):
-            if idx == current_site_idx:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(1 + idx, 0, site)
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(1 + idx, 0, site)
-        stdscr.refresh()
-
-        key = stdscr.getch()
-        if key == curses.KEY_UP and current_site_idx > 0:
-            current_site_idx -= 1
-        elif key == curses.KEY_DOWN and current_site_idx < len(sites) - 1:
-            current_site_idx += 1
-        elif key == ord("\n"):
+    site = get_input(stdscr, "Enter the name/web-URL/site you want to edit: ")
+    current_entry = None
+    for entry in userEntries:
+        if entry.website == site:
+            current_entry = entry
+            userEntries.remove(entry)
             break
-
-    new_password = get_input(stdscr, f"Enter the new password for {sites[current_site_idx]}: ")
-
-    if not saveSitePassword(username, sites[current_site_idx], new_password):
+    if current_entry is None:
         stdscr.clear()
-        stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
+        stdscr.addstr(1, 0, "Site not found.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
         stdscr.getch()
         return
-
     stdscr.clear()
-    stdscr.addstr(1, 0, "Password updated!")
-    stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+    display_entry(stdscr, current_entry)
+    stdscr.addstr(6, 0, "Is this the entry you want to edit? (y/n)")  
+    answer: bool = False
+    while True:
+        key = stdscr.getch()
+        if key == ord("y"):
+            answer = True
+            break
+        elif key == ord("n"):
+            answer = False
+            break
     stdscr.refresh()
     stdscr.getch()
+    if not answer:
+        return
+    stdscr.clear()
+    stdscr.addstr(1, 0, "What do you want to edit? (use number to select and press Enter to confirm)")
+    stdscr.addstr(2, 0, "1. Website")
+    stdscr.addstr(3, 0, "2. Username")
+    stdscr.addstr(4, 0, "3. Password")
+    stdscr.addstr(5, 0, "4. Notes")
+    stdscr.addstr(6, 0, "5. Cancel")
+    stdscr.refresh()
+    key = stdscr.getch()
+    if key == ord("1"):
+        new_site = get_input(stdscr, "Enter the new website: ")
+        changeable = True
+        for entry in userEntries:
+            if entry.website == new_site:
+                changeable = False
+                break
+        if changeable and current_entry.updateWebsite(new_site):
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Website updated!")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+        else:
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Website not updated. (Website already exists)")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+    elif key == ord("2"):
+        new_username = get_input(stdscr, "Enter the new username: ")
+        if current_entry.updateUsername(new_username):
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Username updated!")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+        else:
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Username not updated.")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+    elif key == ord("3"):
+        new_password = get_input(stdscr, "Enter the new password: ")
+        if current_entry.updatePassword(new_password):
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Password updated!")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+        else:
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Password not updated. You may not use an old password")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+    elif key == ord("4"):
+        new_notes = get_input(stdscr, "Enter the new notes: ")
+        if current_entry.updateNotes(new_notes):
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Notes updated!")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+        else:
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Notes not updated.")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+    elif key == ord("5"):
+        userEntries.append(current_entry)
+        return
+    userEntries.append(current_entry)
+    if saveToDisk(username, userEntries):
+        pass    
 
 
-def delete_password(stdscr, username):
+def delete_password(stdscr, username: str, userEntries: list) -> None:
     """
     Deletes a password entry.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - userEntries: A list of the users entries.
     """
-    filename = f"{username}_passwords.json"
-
-    if not os.path.exists(filename):
-        stdscr.clear()
-        stdscr.addstr(1, 0, "No passwords found.")
-        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
-        stdscr.refresh()
-        stdscr.getch()
-        return
-
-    with open(filename, "r", encoding="utf-8") as file:
-        passwords = json.load(file)
-
-    sites = [entry["site"] for entry in passwords]
-
-    current_site_idx = 0
-
-    while True:
-        stdscr.clear()
-        stdscr.addstr(0, 0, "Select a site to delete its password (use arrow keys and press Enter to select):")
-        for idx, site in enumerate(sites):
-            if idx == current_site_idx:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(1 + idx, 0, site)
-                stdscr.attroff(curses.color_pair(1))
+    
+    site = get_input(stdscr, "Enter the name/web-URL/site you want to delete: ")
+    for entry in userEntries:
+        if entry.website == site:
+            userEntries.remove(entry)
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Entry deleted!")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
+            if saveToDisk(username, userEntries):
+                pass
             else:
-                stdscr.addstr(1 + idx, 0, site)
-        stdscr.refresh()
-
-        key = stdscr.getch()
-        if key == curses.KEY_UP and current_site_idx > 0:
-            current_site_idx -= 1
-        elif key == curses.KEY_DOWN and current_site_idx < len(sites) - 1:
-            current_site_idx += 1
-        elif key == ord("\n"):
-            break
-
-    passwords = [entry for entry in passwords if entry["site"] != sites[current_site_idx]]
-
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(passwords, file, indent=4)
-
+                stdscr.clear()
+                stdscr.addstr(1, 0, "Failed to delete entry.")
+                stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+                stdscr.refresh()
+                stdscr.getch()
+            return
+        
     stdscr.clear()
-    stdscr.addstr(1, 0, "Password deleted!")
+    stdscr.addstr(1, 0, "Entry not found.")
     stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 
-
-def find_password(stdscr, username):
+    
+def find_password(stdscr, userEntries):
     """
     Finds and displays a password for a site.
 
@@ -318,24 +365,13 @@ def find_password(stdscr, username):
     - username: The username of the user.
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
-    filename = f"{username}_passwords.json"
-
-    if not os.path.exists(filename):
-        stdscr.clear()
-        stdscr.addstr(1, 0, "No passwords found.")
-        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
-        stdscr.refresh()
-        stdscr.getch()
-        return
-
-    with open(filename, "r", encoding="utf-8") as file:
-        passwords = json.load(file)
-
-    for entry in passwords:
-        if entry["site"] == site:
+    for entry in userEntries:
+        if entry.website == site:
             stdscr.clear()
-            stdscr.addstr(1, 0, f"Password for {site}: {entry['password']}")
-            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.addstr(1, 0, f"Password for {site}: {entry.password}")
+            stdscr.addstr(2, 0, f"Username: {entry.username}")
+            stdscr.addstr(3, 0, f"Notes: {entry.notes}")
+            stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
             stdscr.refresh()
             stdscr.getch()
             return
@@ -397,9 +433,42 @@ def main(stdscr):
                     stdscr.getch()
             elif current_row == 2:
                 break
+def display_entry(stdscr, entry: entry) -> None:
+    """
+    Display an entry in the terminal.
 
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - entry: The entry to display.
+    """
+    stdscr.clear()
+    stdscr.addstr(1, 0, f"Website: {entry.website}")
+    stdscr.addstr(2, 0, f"Username: {entry.username}")
+    stdscr.addstr(3, 0, f"Password: {entry.password}")
+    stdscr.addstr(4, 0, f"Notes: {entry.notes}")
+    stdscr.addstr(5, 0, "-" * 50)
 
-def password_manager(stdscr, username):
+def view_all_sites(stdscr, userEntries: list) -> None:
+    """
+    Display all entries in the terminal.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - userEntries: A list of the users entries.
+    """
+    stdscr.clear()
+    for entry in userEntries:
+        display_entry(stdscr, entry)
+        stdscr.addstr(6, 0, "Press any key to view the next entry.")
+        stdscr.getch()
+    if len(userEntries) == 0:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "No entries found.")
+    stdscr.addstr(6, 0, "Press any key to return to the manager menu.")
+    stdscr.refresh()
+    stdscr.getch()
+
+def password_manager(stdscr, username: str):
     """
     The password manager menu for a logged-in user.
 
@@ -415,8 +484,10 @@ def password_manager(stdscr, username):
         "Edit Password",
         "Delete Password",
         "Find Password",
+        "View All Sites",
         "Logout",
     ]
+    userEntries = loadFromDisk(username)
 
     while True:
         print_menu(stdscr, current_row, menu)
@@ -428,16 +499,18 @@ def password_manager(stdscr, username):
             current_row += 1
         elif key == ord("\n"):
             if current_row == 0:
-                add_site_password(stdscr, username)
+                add_site_password(stdscr, username, userEntries)	
             elif current_row == 1:
                 generate_password(stdscr)
             elif current_row == 2:
-                edit_password(stdscr, username)
+                edit_password(stdscr, username, userEntries)
             elif current_row == 3:
-                delete_password(stdscr, username)
+                delete_password(stdscr, username, userEntries)
             elif current_row == 4:
-                find_password(stdscr, username)
+                find_password(stdscr, userEntries)
             elif current_row == 5:
+                view_all_sites(stdscr, userEntries)
+            elif current_row == 6:
                 break
 
 

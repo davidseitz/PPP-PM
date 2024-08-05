@@ -2,6 +2,8 @@ import json
 import os
 import time
 
+from source.DiskManagement import getFilepath
+
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
 
@@ -23,6 +25,9 @@ def saveUser(username, password):
 
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(userData, file, indent=4)
+    path = getFilepath(username)
+    with open(path, 'a'):
+        os.utime(path, None)
 
 
 def validateUser(username, password):
@@ -108,4 +113,3 @@ def saveSitePassword(username :str, site :str, newPassword :str) -> bool:
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(passwords, file, indent=4)
     return True
-
