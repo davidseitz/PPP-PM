@@ -13,14 +13,12 @@ Functions:
 - main: The main function to run the password manager.
 """
 import curses
-import json
-import os
 import random
 import string
 
-from source.DiskManagement import getFilepath, loadFromDisk, saveToDisk
+from source.diskManagement import loadFromDisk, saveToDisk
 
-from .userManagement import saveUser, validateUser, userExists, saveSitePassword
+from .userManagement import saveUser, validateUser, userExists
 from .entry import entry
 
 def print_menu(stdscr, selected_row_idx, menu):

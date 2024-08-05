@@ -2,7 +2,7 @@ import json
 import os
 import time
 
-from source.DiskManagement import getFilepath
+from source.diskManagement import getFilepath
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
@@ -79,37 +79,3 @@ def userExists(username):
     """
     filename = f"{username}_user.json"
     return os.path.exists(filename)
-
-
-def saveSitePassword(username :str, site :str, newPassword :str) -> bool:
-    """
-    Saves or updates a user's password for a site.
-
-    Parameters:
-    - username: The username of the user.
-    - site: The site for which the password is being saved.
-    - newPassword: The new password to save.
-
-    Returns:
-    - True if the password was saved successfully, False otherwise.
-    """
-    filename = f"{username}_passwords.json"
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as file:
-            passwords = json.load(file)
-    else:
-        passwords = []
-        return False # User does not exist
-
-    for entry in passwords:
-        if entry["site"] == site:
-            if newPassword in entry.get("old_passwords", []):
-                return False  # newPassword is an old password, don't save it
-            entry["old_passwords"] = entry.get("old_passwords", []) + [entry["password"]]
-            entry["password"] = newPassword
-            break
-    else:
-        passwords.append({"site": site, "password": newPassword, "old_passwords": []})
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(passwords, file, indent=4)
-    return True

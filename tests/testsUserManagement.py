@@ -1,5 +1,5 @@
 import unittest
-from source.userManagement import saveSitePassword, saveUser, validateUser, userExists
+from source.userManagement import saveUser, validateUser, userExists
 
 class TestUserManagement(unittest.TestCase):
 
@@ -27,9 +27,3 @@ class TestUserManagement(unittest.TestCase):
     def testUserExists(self) -> None:
         self.assertTrue(userExists("test_user"))
         self.assertFalse(userExists("wrong_user"))
-
-    def testSavePassword(self) -> None:
-        self.assertTrue(userExists("test_user"))
-        self.assertFalse(userExists("wrong_user"))
-        self.assertTrue(saveSitePassword("test_user","test_site", "test_password"))
-        self.assertFalse(saveSitePassword("wrong_user","test_site", "test_password"))

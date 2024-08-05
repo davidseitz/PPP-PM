@@ -2,9 +2,12 @@
 This file is used to run all the tests in the tests folder
 """
 import unittest
+
+from tests.testEntry import TestEntry
 from .testCheckPwned import TestHaveIBeenPwned
 from .testCheckPassword import TestCheckPassword
 from .testsUserManagement import TestUserManagement
+from .testDiskManagement import TestDiskManagement
 
 def testMain() -> None:
     """
@@ -25,7 +28,6 @@ def testMain() -> None:
     suite.addTest(TestUserManagement('testSaveUser'))
     suite.addTest(TestUserManagement('testValidateUser'))
     suite.addTest(TestUserManagement('testUserExists'))
-    suite.addTest(TestUserManagement('testSavePassword'))
 
     #CheckPassword tests
     suite.addTest(TestCheckPassword('testCheckPassword'))
@@ -35,6 +37,22 @@ def testMain() -> None:
     suite.addTest(TestCheckPassword('testCheckDigit'))
     suite.addTest(TestCheckPassword('testCheckSpecial'))
     suite.addTest(TestCheckPassword('testCheckPwned'))
+
+    #Entry tests
+    suite.addTest(TestEntry('testConstructor'))
+    suite.addTest(TestEntry('testUpdatePassword'))
+    suite.addTest(TestEntry('testUpdateUsername'))
+    suite.addTest(TestEntry('testUpdateNotes'))
+    suite.addTest(TestEntry('testUpdateWebsite'))
+    suite.addTest(TestEntry('testStr'))
+    suite.addTest(TestEntry('testEq'))
+
+    #DiskManagement tests
+    suite.addTest(TestDiskManagement('testSaveToDisk'))
+    suite.addTest(TestDiskManagement('testLoadFromDisk'))
+    suite.addTest(TestDiskManagement('testGetFilepath'))
+    suite.addTest(TestDiskManagement('testCreateFile'))
+    #suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
