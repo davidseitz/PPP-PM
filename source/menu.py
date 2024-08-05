@@ -10,13 +10,16 @@ Functions:
 - edit_password: Edits an existing password.
 - delete_password: Deletes a password entry.
 - find_password: Finds and displays a password for a site.
+- view_all_sites: Display all entries in the terminal.
+- password_manager: The password manager menu for a logged-in user.
+- _terminalToSmall: Displays a message if the terminal is too small.
 - main: The main function to run the password manager.
 """
 import curses
 import random
 import string
 
-from source.diskManagement import loadFromDisk, saveToDisk
+from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
 
 from .userManagement import saveUser, validateUser, userExists
 from .entry import entry
@@ -30,20 +33,50 @@ def print_menu(stdscr, selected_row_idx, menu):
     - selected_row_idx: Index of the currently selected row.
     - menu: List of menu items to display.
     """
+    try:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        for idx, row in enumerate(menu):
+            x = w // 2 - len(row) // 2
+            y = h // 2 - len(menu) // 2 + idx
+            if idx == selected_row_idx:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, row)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, row)
+        stdscr.refresh()
+    except curses.error:
+        _terminalToSmall(stdscr)
+def exportToFile(stdscr,username: str, userEntries: list) -> None:
+    """
+    Export the user's entries to a file.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - userEntries: A list of the users entries.
+    """
+    filepath = exportToDisk(username, userEntries)
     stdscr.clear()
-    h, w = stdscr.getmaxyx()
-
-    for idx, row in enumerate(menu):
-        x = w // 2 - len(row) // 2
-        y = h // 2 - len(menu) // 2 + idx
-        if idx == selected_row_idx:
-            stdscr.attron(curses.color_pair(1))
-            stdscr.addstr(y, x, row)
-            stdscr.attroff(curses.color_pair(1))
-        else:
-            stdscr.addstr(y, x, row)
+    stdscr.addstr(1, 0, "Entries exported to file:")
+    stdscr.addstr(2, 0, filepath)
+    stdscr.addstr(3, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
+    stdscr.getch()
 
+
+def _terminalToSmall(stdscr):
+    try:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Please resize the terminal to be larger.")
+        stdscr.addstr(2, 0, "Press any key to continue.")
+        stdscr.refresh()
+        stdscr.getch()
+    except curses.error:
+        with open("error.log", "w") as f:
+            print("Please resize the terminal to be larger and restart the application.\n", file=f)
+        exit(1)
 
 def get_input(stdscr, prompt):
     """
@@ -67,6 +100,21 @@ def get_input(stdscr, prompt):
     curses.noecho()  # Disable input echoing
     return user_input
 
+def getInputLong(stdscr, prompt: str) -> str:
+    """
+    Prompts the user for input. That may be longer than the terminal width.
+    """
+
+    stdscr.clear()
+    h, w = stdscr.getmaxyx()
+    stdscr.addstr(h // 2 - 1, 0, prompt)
+    stdscr.refresh()
+
+    input_win = curses.newwin(1, w, h // 2, 0)
+    curses.echo()  # Enable input echoing
+    user_input = input_win.getstr().decode("utf-8")
+    curses.noecho()  # Disable input echoing
+    return user_input
 
 
 def add_site_password(stdscr,username, userEntries):
@@ -135,6 +183,33 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.refresh()
         stdscr.getch()
 
+
+def loadFromFile(stdscr, userEntries: list) -> list:
+    """
+    Load the user's entries from disk
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+
+    Returns:
+    - userEntries: A list of the users entries.
+    """
+    filepath = getInputLong(stdscr, "Enter the file path: ")
+    try:
+        userEntries = loadEntryFromFile(filepath, userEntries)
+    except FileNotFoundError:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "File not found.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+    except ValueError:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Invalid file format.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+    return userEntries
 
 def generate_password(stdscr):
     """
@@ -483,6 +558,8 @@ def password_manager(stdscr, username: str):
         "Delete Password",
         "Find Password",
         "View All Sites",
+        "Load from File",
+        "Export to File",
         "Logout",
     ]
     userEntries = loadFromDisk(username)
@@ -490,7 +567,14 @@ def password_manager(stdscr, username: str):
     while True:
         print_menu(stdscr, current_row, menu)
         key = stdscr.getch()
-
+        if saveToDisk(username, userEntries):
+            pass
+        else:
+            stdscr.clear()
+            stdscr.addstr(1, 0, "Failed to save entries.")
+            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            stdscr.refresh()
+            stdscr.getch()
         if key == curses.KEY_UP and current_row > 0:
             current_row -= 1
         elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
@@ -509,6 +593,10 @@ def password_manager(stdscr, username: str):
             elif current_row == 5:
                 view_all_sites(stdscr, userEntries)
             elif current_row == 6:
+                userEntries = loadFromFile(stdscr, userEntries)
+            elif current_row == 7:
+                exportToFile(stdscr, username, userEntries)
+            elif current_row == 8:
                 break
 
 

@@ -52,7 +52,8 @@ def testMain() -> None:
     suite.addTest(TestDiskManagement('testLoadFromDisk'))
     suite.addTest(TestDiskManagement('testGetFilepath'))
     suite.addTest(TestDiskManagement('testCreateFile'))
-    #suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
+    suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
+    suite.addTest(TestDiskManagement('testExportToDisk'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)

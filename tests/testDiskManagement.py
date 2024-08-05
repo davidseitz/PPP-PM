@@ -1,7 +1,7 @@
 import unittest
 import os
-
-from source.diskManagement import saveToDisk, loadFromDisk, getFilepath, loadEntryFromFile, createFile 
+from source.entry import entry
+from source.diskManagement import saveToDisk, loadFromDisk, getFilepath, loadEntryFromFile, createFile, exportToDisk 
 
 class TestDiskManagement(unittest.TestCase):
     def testGetFilepath(self) -> None:
@@ -26,5 +26,22 @@ class TestDiskManagement(unittest.TestCase):
         os.remove(getFilepath("test_user1"))
 
     def testLoadEntryFromFile(self) -> None:
-        #TODO: Implement this test
-        pass
+        contents = """
+        [
+            {
+                "website": "x",
+                "password": "a",
+                "username": "a",
+                "notes": "a",
+                "oldPasswords": []
+            }
+        ]
+        """
+        with open("test.json", "w") as file:
+            file.write(contents)  
+        self.assertEqual(loadEntryFromFile("test.json", []), [entry("x", "a", "a", "a", [])]) 
+        os.remove("test.json")
+
+    def testExportToDisk(self) -> None:
+        self.assertEqual(exportToDisk("test_user", []), os.getcwd()+ "/test_user_exports.json")
+        os.remove(os.getcwd()+ "/test_user_exports.json")
