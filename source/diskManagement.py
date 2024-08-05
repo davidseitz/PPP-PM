@@ -38,15 +38,17 @@ def createFile(user: str) -> bool:
     """
     Create a file for the user's entries
     """
-    filename = f"resources/{user}_entries.json"
-    if not os.path.exists(filename):
-        os.touch(filename)
-        return True
-    return False
+    filename = getFilepath(user)
+    if os.path.exists(filename):
+        return False
+    with open(filename, 'a'):
+        os.utime(filename, None)
+    return True
 
 def loadEntryFromFile(filepath: str, userEntries: list) -> list:
     """
     Load an entry from a given file
+    This method is not ready for serial use
     """
     with open(filepath, "r") as file:
         contents = json.load(file)

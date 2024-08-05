@@ -16,7 +16,7 @@ import curses
 import random
 import string
 
-from source.DiskManagement import loadFromDisk, saveToDisk
+from source.diskManagement import loadFromDisk, saveToDisk
 
 from .userManagement import saveUser, validateUser, userExists
 from .entry import entry

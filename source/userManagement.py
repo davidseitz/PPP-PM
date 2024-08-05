@@ -2,7 +2,7 @@ import json
 import os
 import time
 
-from source.DiskManagement import getFilepath
+from source.diskManagement import getFilepath
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute

@@ -7,6 +7,7 @@ from tests.testEntry import TestEntry
 from .testCheckPwned import TestHaveIBeenPwned
 from .testCheckPassword import TestCheckPassword
 from .testsUserManagement import TestUserManagement
+from .testDiskManagement import TestDiskManagement
 
 def testMain() -> None:
     """
@@ -46,6 +47,12 @@ def testMain() -> None:
     suite.addTest(TestEntry('testStr'))
     suite.addTest(TestEntry('testEq'))
 
+    #DiskManagement tests
+    suite.addTest(TestDiskManagement('testSaveToDisk'))
+    suite.addTest(TestDiskManagement('testLoadFromDisk'))
+    suite.addTest(TestDiskManagement('testGetFilepath'))
+    suite.addTest(TestDiskManagement('testCreateFile'))
+    #suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
