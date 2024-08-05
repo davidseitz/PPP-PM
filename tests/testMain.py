@@ -3,8 +3,8 @@ This file is used to run all the tests in the tests folder
 """
 import unittest
 from .testCheckPwned import TestHaveIBeenPwned
-from .testMenu import testMenu as TestMenu
 from .testCheckPassword import TestCheckPassword
+from .testsUserManagement import TestUserManagement
 
 def testMain() -> None:
     """
@@ -18,11 +18,14 @@ def testMain() -> None:
     suite.addTest(TestHaveIBeenPwned('testCheckPawned'))
 
     #Menu tests
-    suite.addTest(TestMenu('test_save_user'))
-    suite.addTest(TestMenu('test_validate_user_success'))
-    suite.addTest(TestMenu('test_validate_user_fail'))
-    suite.addTest(TestMenu('test_save_password_update'))
-    suite.addTest(TestMenu('test_save_password_new'))
+    #suite.addTest(TestMenu('test_save_password_update'))
+    #suite.addTest(TestMenu('test_save_password_new'))
+
+    #UserManagement tests
+    suite.addTest(TestUserManagement('testSaveUser'))
+    suite.addTest(TestUserManagement('testValidateUser'))
+    suite.addTest(TestUserManagement('testUserExists'))
+    suite.addTest(TestUserManagement('testSavePassword'))
 
     #CheckPassword tests
     suite.addTest(TestCheckPassword('testCheckPassword'))

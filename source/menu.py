@@ -4,11 +4,8 @@ This module provides a command-line password manager using curses for the UI.
 Functions:
 - print_menu: Displays a menu in the terminal.
 - get_input: Prompts the user for input.
-- save_user: Saves user information to a JSON file.
-- validate_user: Validates user login credentials.
-- user_exists: Checks if a user already exists.
-- save_password: Saves or updates a user's password for a site.
-- add_password: Adds a new password for a site.
+- validateUser: Validates user login credentials.
+- add_site_password: Adds a new password for a site.
 - generate_password: Generates a random password based on user criteria.
 - edit_password: Edits an existing password.
 - delete_password: Deletes a password entry.
@@ -20,10 +17,8 @@ import json
 import os
 import random
 import string
-import time
 
-MAX_ATTEMPTS = 3
-LOCKOUT_TIME = 60  # 1 minute
+from .userManagement import saveUser, validateUser, userExists, saveSitePassword
 
 
 def print_menu(stdscr, selected_row_idx, menu):
@@ -73,112 +68,8 @@ def get_input(stdscr, prompt):
     return user_input
 
 
-def save_user(username, password):
-    """
-    Saves user information to a JSON file.
 
-    Parameters:
-    - username: The username of the user.
-    - password: The password of the user.
-    """
-    filename = f"{username}_user.json"
-    user_data = {
-        "username": username,
-        "password": password,
-        "failed_attempts": 0,
-        "lockout_time": 0,
-    }
-
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(user_data, file, indent=4)
-
-
-def validate_user(username, password):
-    """
-    Validates user login credentials.
-
-    Parameters:
-    - username: The username of the user.
-    - password: The password of the user.
-
-    Returns:
-    - A tuple containing a boolean indicating if the validation was successful and a message.
-    """
-    filename = f"{username}_user.json"
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as file:
-            user = json.load(file)
-            current_time = time.time()
-
-            if current_time < user.get("lockout_time", 0):
-                return False, "Account locked due to multiple failed attempts. Try again later."
-
-            if user["username"] == username and user["password"] == password:
-                user["failed_attempts"] = 0
-                user["lockout_time"] = 0
-                with open(filename, "w", encoding="utf-8") as file:
-                    json.dump(user, file, indent=4)
-                return True, "Login successful."
-
-            user["failed_attempts"] = user.get("failed_attempts", 0) + 1
-            if user["failed_attempts"] >= MAX_ATTEMPTS:
-                user["lockout_time"] = current_time + LOCKOUT_TIME
-            with open(filename, "w", encoding="utf-8") as file:
-                json.dump(user, file, indent=4)
-            return False, "Invalid username or password."
-
-    return False, "Invalid username or password."
-
-
-def user_exists(username):
-    """
-    Checks if a user already exists.
-
-    Parameters:
-    - username: The username to check.
-
-    Returns:
-    - True if the user exists, False otherwise.
-    """
-    filename = f"{username}_user.json"
-    return os.path.exists(filename)
-
-
-def save_password(username, site, new_password):
-    """
-    Saves or updates a user's password for a site.
-
-    Parameters:
-    - username: The username of the user.
-    - site: The site for which the password is being saved.
-    - new_password: The new password to save.
-
-    Returns:
-    - True if the password was saved successfully, False otherwise.
-    """
-    filename = f"{username}_passwords.json"
-
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as file:
-            passwords = json.load(file)
-    else:
-        passwords = []
-
-    for entry in passwords:
-        if entry["site"] == site:
-            if new_password in entry.get("old_passwords", []):
-                return False  # new_password is an old password, don't save it
-            entry["old_passwords"] = entry.get("old_passwords", []) + [entry["password"]]
-            entry["password"] = new_password
-            break
-    else:
-        passwords.append({"site": site, "password": new_password, "old_passwords": []})
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(passwords, file, indent=4)
-    return True
-
-
-def add_password(stdscr, username):
+def add_site_password(stdscr, username):
     """
     Adds a new password for a site.
 
@@ -188,8 +79,38 @@ def add_password(stdscr, username):
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
     password = get_input(stdscr, "Enter the password: ")
+    if get_input(stdscr, "Re-enter the password: ") != password:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Passwords do not match.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
+    
+    from .checkPassword import checkPassword
 
-    if not save_password(username, site, password):
+    if not checkPassword(password):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Password may be insecure.")
+        stdscr.addstr(2, 0, "To ensure security, please use a password with at least 12 characters.")
+        stdscr.addstr(3, 0, "Including uppercase and lowercase letters, digits, and special characters.")
+        stdscr.addstr(4, 0, "You're password may also have appreaed on the Have I been Pwned database.")
+        stdscr.addstr(5, 0, "Do you want to continue? (y/n)")
+        answer: bool = False
+        while True:
+            key = stdscr.getch()
+            if key == ord("y"):
+                answer = True
+                break
+            elif key == ord("n"):
+                answer = False
+                break
+        stdscr.refresh()
+        stdscr.getch()  
+        if not answer:
+            return
+          
+    if not saveSitePassword(username, site, password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -264,7 +185,7 @@ def generate_password(stdscr):
 
     stdscr.clear()
     stdscr.addstr(1, 0, f"Generated password: {password}")
-    stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+    stdscr.addstr(3, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 
@@ -316,7 +237,7 @@ def edit_password(stdscr, username):
 
     new_password = get_input(stdscr, f"Enter the new password for {sites[current_site_idx]}: ")
 
-    if not save_password(username, sites[current_site_idx], new_password):
+    if not saveSitePassword(username, sites[current_site_idx], new_password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password cannot be one of the old passwords.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -453,7 +374,7 @@ def main(stdscr):
             if current_row == 0:
                 username = get_input(stdscr, "Enter username: ")
                 password = get_input(stdscr, "Enter password: ")
-                valid, message = validate_user(username, password)
+                valid, message = validateUser(username, password)
                 stdscr.clear()
                 stdscr.addstr(1, 0, message)
                 stdscr.refresh()
@@ -462,14 +383,14 @@ def main(stdscr):
                     password_manager(stdscr, username)
             elif current_row == 1:
                 username = get_input(stdscr, "Enter username: ")
-                if user_exists(username):
+                if userExists(username):
                     stdscr.clear()
                     stdscr.addstr(1, 0, "Username already exists.")
                     stdscr.refresh()
                     stdscr.getch()
                 else:
                     password = get_input(stdscr, "Enter password: ")
-                    save_user(username, password)
+                    saveUser(username, password)
                     stdscr.clear()
                     stdscr.addstr(1, 0, "User registered successfully.")
                     stdscr.refresh()
@@ -507,7 +428,7 @@ def password_manager(stdscr, username):
             current_row += 1
         elif key == ord("\n"):
             if current_row == 0:
-                add_password(stdscr, username)
+                add_site_password(stdscr, username)
             elif current_row == 1:
                 generate_password(stdscr)
             elif current_row == 2:
