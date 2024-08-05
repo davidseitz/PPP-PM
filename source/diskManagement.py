@@ -52,9 +52,16 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
     """
     with open(filepath, "r") as file:
         contents = json.load(file)
-        contents = json.load(file)
-        entry = entry(**contents)
-        userEntries.append(entry)
+        try:
+            for e in contents:
+                website = e["website"]
+                password = e["password"]
+                username = e["username"]
+                notes = e["notes"]
+                oldPasswords = e["oldPasswords"]
+                userEntries.append(entry(website, password, username, notes, oldPasswords))
+        except json.JSONDecodeError:
+            raise ValueError("Invalid file format") 
     return userEntries
 
 def getFilepath(user: str) -> str:

@@ -16,7 +16,7 @@ import curses
 import random
 import string
 
-from source.diskManagement import loadFromDisk, saveToDisk
+from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile
 
 from .userManagement import saveUser, validateUser, userExists
 from .entry import entry
@@ -30,20 +30,34 @@ def print_menu(stdscr, selected_row_idx, menu):
     - selected_row_idx: Index of the currently selected row.
     - menu: List of menu items to display.
     """
-    stdscr.clear()
-    h, w = stdscr.getmaxyx()
+    try:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
 
-    for idx, row in enumerate(menu):
-        x = w // 2 - len(row) // 2
-        y = h // 2 - len(menu) // 2 + idx
-        if idx == selected_row_idx:
-            stdscr.attron(curses.color_pair(1))
-            stdscr.addstr(y, x, row)
-            stdscr.attroff(curses.color_pair(1))
-        else:
-            stdscr.addstr(y, x, row)
-    stdscr.refresh()
+        for idx, row in enumerate(menu):
+            x = w // 2 - len(row) // 2
+            y = h // 2 - len(menu) // 2 + idx
+            if idx == selected_row_idx:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, row)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, row)
+        stdscr.refresh()
+    except curses.error:
+        _terminalToSmall(stdscr)
 
+def _terminalToSmall(stdscr):
+    try:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Please resize the terminal to be larger.")
+        stdscr.addstr(2, 0, "Press any key to continue.")
+        stdscr.refresh()
+        stdscr.getch()
+    except curses.error:
+        with open("error.log", "w") as f:
+            print("Please resize the terminal to be larger and restart the application.\n", file=f)
+        exit(1)
 
 def get_input(stdscr, prompt):
     """
@@ -67,6 +81,21 @@ def get_input(stdscr, prompt):
     curses.noecho()  # Disable input echoing
     return user_input
 
+def getInputLong(stdscr, prompt: str) -> str:
+    """
+    Prompts the user for input. That may be longer than the terminal width.
+    """
+
+    stdscr.clear()
+    h, w = stdscr.getmaxyx()
+    stdscr.addstr(h // 2 - 1, 0, prompt)
+    stdscr.refresh()
+
+    input_win = curses.newwin(1, w, h // 2, 0)
+    curses.echo()  # Enable input echoing
+    user_input = input_win.getstr().decode("utf-8")
+    curses.noecho()  # Disable input echoing
+    return user_input
 
 
 def add_site_password(stdscr,username, userEntries):
@@ -135,6 +164,33 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.refresh()
         stdscr.getch()
 
+
+def loadFromFile(stdscr, userEntries: list) -> list:
+    """
+    Load the user's entries from disk
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+
+    Returns:
+    - userEntries: A list of the users entries.
+    """
+    filepath = getInputLong(stdscr, "Enter the file path: ")
+    try:
+        userEntries = loadEntryFromFile(filepath, userEntries)
+    except FileNotFoundError:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "File not found.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+    except ValueError:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Invalid file format.")
+        stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+        stdscr.refresh()
+        stdscr.getch()
+    return userEntries
 
 def generate_password(stdscr):
     """
@@ -483,6 +539,7 @@ def password_manager(stdscr, username: str):
         "Delete Password",
         "Find Password",
         "View All Sites",
+        "Load from File",
         "Logout",
     ]
     userEntries = loadFromDisk(username)
@@ -509,6 +566,8 @@ def password_manager(stdscr, username: str):
             elif current_row == 5:
                 view_all_sites(stdscr, userEntries)
             elif current_row == 6:
+                userEntries = loadFromFile(stdscr, userEntries)
+            elif current_row == 7:
                 break
 
 
