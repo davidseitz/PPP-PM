@@ -1,4 +1,4 @@
-from source.checkPwned import checkPawned
+from checkPwned import checkPawned
 
 def checkPassword(password: str) -> bool:
     """

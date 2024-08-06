@@ -19,10 +19,10 @@ import curses
 import random
 import string
 
-from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
+from diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
 
-from .userManagement import saveUser, validateUser, userExists
-from .entry import entry
+from userManagement import saveUser, validateUser, userExists
+from entry import entry
 
 def print_menu(stdscr, selected_row_idx, menu):
     """
@@ -138,7 +138,7 @@ def add_site_password(stdscr,username, userEntries):
         return
     note = get_input(stdscr, "Enter any notes: ")
     
-    from .checkPassword import checkPassword
+    from checkPassword import checkPassword
 
     if not checkPassword(password):
         stdscr.clear()

@@ -1,6 +1,6 @@
 import json
 import os
-from .entry import entry
+from entry import entry
 
 def saveToDisk(user: str, userEntries: list) -> bool:
     """
