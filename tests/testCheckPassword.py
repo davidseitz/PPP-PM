@@ -11,6 +11,11 @@ class TestCheckPassword(unittest.TestCase):
     """
     def testCheckPassword(self) -> None:
         self.assertTrue(checkPassword("Test1234!!@sadadad42311231."))
+        self.assertFalse(checkPassword("Test1234"))
+        self.assertFalse(checkPassword("test1234!!@sadadad42311231."))
+        self.assertFalse(checkPassword("TEST1234!!@42311231."))
+        self.assertFalse(checkPassword("Test!@sadadada"))
+        
 
     def testCheckLength(self) -> None:
         self.assertTrue(_checkLength("Test1234!234"))

@@ -20,5 +20,6 @@ class TestHaveIBeenPwned(unittest.TestCase):
             if requests.get("https://api.pwnedpasswords.com/range/8CB22").status_code != 200:
                 self.skipTest("Pwned Passwords API is down")
             self.assertGreaterEqual(checkPawned("12345"), 1)
+            self.assertEqual(checkPawned("B@eiwewirw    kd!12345a"), 0)
         except requests.exceptions.RequestException:
             self.skipTest("Connection is down")

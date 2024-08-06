@@ -28,11 +28,3 @@ def hashPassword(password: str) -> str:
     Hash the password using SHA1 algorithm
     """
     return hashlib.sha1(password.encode()).hexdigest().upper()
-
-if __name__ == '__main__':
-    PASSWORD = "12345"
-    pawned_count = checkPawned(PASSWORD)
-    if pawned_count:
-        print(f"Password {PASSWORD} has been found {pawned_count} times")
-    else:
-        print(f"Password {PASSWORD} has not been found")
