@@ -369,7 +369,6 @@ def edit_password(stdscr, username: str, userEntries: list) -> None:
             answer = False
             break
     stdscr.refresh()
-    stdscr.getch()
     if not answer:
         return
     stdscr.clear()
@@ -416,7 +415,7 @@ def edit_password(stdscr, username: str, userEntries: list) -> None:
             stdscr.getch()
     elif key == ord("3"):
         new_password = get_input(stdscr, "Enter the new password: ")
-        if current_entry.updatePassword(new_password):
+        if evaluatePassword(stdscr, new_password, userEntries) and current_entry.updatePassword(new_password):
             stdscr.clear()
             stdscr.addstr(1, 0, "Password updated!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
