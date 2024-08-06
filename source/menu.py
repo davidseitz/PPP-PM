@@ -204,11 +204,11 @@ def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
             stdscr.refresh()
             if not answer:
                 return  False  
-    except checkPwned.RequestError as e:
+    except RuntimeError as e:
         stdscr.clear()
         stdscr.addstr(1, 0, "Failed to check if password has been pawned.")
-        stdscr.addstr(2, 0, f"API request failed: \"{e}\".")
-        stdscr.addstr(3, 0, "Do you want to continue anyway? (y/n)")
+        stdscr.addstr(3, 0, f"API request failed: \"{e}\".")
+        stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
         answer: bool = False
         while True:
             key = stdscr.getch()
@@ -583,6 +583,8 @@ def main(stdscr):
                     stdscr.getch()
             elif current_row == 2:
                 break
+
+
 def display_entry(stdscr, entry: entry) -> None:
     """
     Display an entry in the terminal.

@@ -37,8 +37,7 @@ def testMain() -> None:
     suite.addTest(TestCheckPassword('testCheckUppercase'))
     suite.addTest(TestCheckPassword('testCheckDigit'))
     suite.addTest(TestCheckPassword('testCheckSpecial'))
-    suite.addTest(TestCheckPassword('testCheckPwned'))
-
+    
     #Entry tests
     suite.addTest(TestEntry('testConstructor'))
     suite.addTest(TestEntry('testUpdatePassword'))

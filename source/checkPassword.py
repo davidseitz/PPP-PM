@@ -45,15 +45,6 @@ def _checkSpecial(password: str) -> bool:
     Check if a password has at least one special character
     """
     return any(not char.isalnum() for char in password)
-
-def _checkPwned(password: str) -> bool:
-    """
-    Check if a password has been pawned using the API from https://haveibeenpawned.com
-    """
-    if checkPawned(password):
-        return False
-    else:
-        return True
     
 def checkDuplicate(password: str, userEntries: list) -> bool:
     """
