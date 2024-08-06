@@ -2,7 +2,8 @@ import json
 import os
 import time
 
-from diskManagement import getFilepath
+from source.diskManagement import getFilepath
+import hashlib
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
@@ -16,9 +17,10 @@ def saveUser(username, password):
     - password: The password of the user.
     """
     filename = f"{username}_user.json"
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
     userData = {
         "username": username,
-        "password": password,
+        "password": hashed_password,
         "failed_attempts": 0,
         "lockout_time": 0,
     }
@@ -50,7 +52,8 @@ def validateUser(username, password):
             if current_time < user.get("lockout_time", 0):
                 return False, "Account locked due to multiple failed attempts. Try again later."
 
-            if user["username"] == username and user["password"] == password:
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            if user["username"] == username and user["password"] == hashed_password:
                 user["failed_attempts"] = 0
                 user["lockout_time"] = 0
                 with open(filename, "w", encoding="utf-8") as file:

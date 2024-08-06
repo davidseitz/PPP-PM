@@ -1,4 +1,4 @@
-from .entry import entry
+from source.entry import entry
 
 def findPasswordByUrl(userEntries: list, url: str) -> entry:
     """

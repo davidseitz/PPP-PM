@@ -1,4 +1,6 @@
 import unittest
+import os
+
 from source.userManagement import saveUser, validateUser, userExists
 
 class TestUserManagement(unittest.TestCase):
@@ -27,3 +29,4 @@ class TestUserManagement(unittest.TestCase):
     def testUserExists(self) -> None:
         self.assertTrue(userExists("test_user"))
         self.assertFalse(userExists("wrong_user"))
+        os.remove("test_user_user.json")

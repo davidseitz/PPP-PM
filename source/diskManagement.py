@@ -1,37 +1,36 @@
 import json
 import os
-from entry import entry
+from source.entry import entry
+from source.cryptographyManager import decryptContent, encryptContent
 
-def saveToDisk(user: str, userEntries: list) -> bool:
+def saveToDisk(user: str, password :str, userEntries: list) -> bool:
     """
     Save the user's entries to disk
     """
-    filename = f"resources/{user}_entries.json"
+    filename = f"resources/{user}_entries.enc"
     if os.path.exists(filename):
-        with open(filename, "w") as file:
-            json.dump([entry.__dict__ for entry in userEntries], file, indent=4)
-        return True
+        return encryptContent(str([entry.__dict__ for entry in userEntries]), password, user)
     return False
 
-def loadFromDisk(user: str) -> list:
+def loadFromDisk(user: str, password : str) -> list:
     """
     Load the user's entries from disk
     """
     userEntries = []
-    filename = f"resources/{user}_entries.json"
+    filename = f"resources/{user}_entries.enc"
     if os.path.exists(filename):
-        with open(filename, "r") as file:
-            try:
-                contents = json.load(file)
-                for e in contents:
-                    website = e["website"]
-                    password = e["password"]
-                    username = e["username"]
-                    notes = e["notes"]
-                    oldPasswords = e["oldPasswords"]
-                    userEntries.append(entry(website, password, username, notes, oldPasswords))
-            except json.JSONDecodeError:
-                pass
+        try:
+            decrypted_entries = decryptContent(password,user)
+            contents = json.loads(decrypted_entries.replace("'", "\""))
+            for e in contents:
+                website = e["website"]
+                password = e["password"]
+                username = e["username"]
+                notes = e["notes"]
+                oldPasswords = e["oldPasswords"]
+                userEntries.append(entry(website, password, username, notes, oldPasswords))
+        except json.JSONDecodeError:
+            pass
     return userEntries
 
 def createFile(user: str) -> bool:
@@ -52,23 +51,23 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
     """
     with open(filepath, "r") as file:
         contents = json.load(file)
-        try:
-            for e in contents:
-                website = e["website"]
-                password = e["password"]
-                username = e["username"]
-                notes = e["notes"]
-                oldPasswords = e["oldPasswords"]
-                userEntries.append(entry(website, password, username, notes, oldPasswords))
-        except json.JSONDecodeError:
-            raise ValueError("Invalid file format") 
+    try:
+        for e in contents:
+            website = e["website"]
+            password = e["password"]
+            username = e["username"]
+            notes = e["notes"]
+            oldPasswords = e["oldPasswords"]
+            userEntries.append(entry(website, password, username, notes, oldPasswords))
+    except json.JSONDecodeError:
+        raise ValueError("Invalid file format") 
     return userEntries
 
 def getFilepath(user: str) -> str:
     """
     Get the filepath for the user's entries
     """
-    return os.getcwd() + f"/resources/{user}_entries.json"
+    return os.getcwd() + f"/resources/{user}_entries.enc"
 
 def exportToDisk(user: str, userEntries: list) -> str:
     """

@@ -16,13 +16,14 @@ Functions:
 - main: The main function to run the password manager.
 """
 import curses
+import datetime
 import random
 import string
 
 
-import checkPwned
-from checkPassword import checkDuplicate
-from diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
+from source.checkPwned import checkPawned
+from source.checkPassword import checkDuplicate
+from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
 
 from userManagement import saveUser, validateUser, userExists
 from entry import entry
@@ -120,13 +121,14 @@ def getInputLong(stdscr, prompt: str) -> str:
     return user_input
 
 
-def add_site_password(stdscr,username, userEntries):
+def add_site_password(stdscr,username,password, userEntries):
     """
     Adds a new password for a site.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - password: The password of the user.
     - userEntries: A list of the users entries.
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
@@ -156,7 +158,7 @@ def add_site_password(stdscr,username, userEntries):
         return
         
     stdscr.clear()
-    if saveToDisk(username, userEntries):
+    if saveToDisk(username, password, userEntries):
         stdscr.addstr(1, 0, "Entry saved!")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
@@ -168,7 +170,7 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.getch()
     
 def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
-    from .checkPassword import checkPassword
+    from source.checkPassword import checkPassword
     if not checkPassword(password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password may be insecure.")
@@ -188,7 +190,7 @@ def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
         if not answer:
             return False
     try:
-        wasPwned = checkPwned.checkPawned(password)
+        wasPwned = checkPawned(password)
         if wasPwned:
             stdscr.clear()
             stdscr.addstr(1, 0, f"Password has been pawned {wasPwned} times.")
@@ -242,19 +244,20 @@ def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
             return False
     return True
 
-def loadFromFile(stdscr, userEntries: list) -> list:
+def loadFromFile(stdscr, password: str, userEntries: list) -> list:
     """
     Load the user's entries from disk
 
     Parameters:
     - stdscr: The standard screen object from curses.
+    - password: The password of the user.
 
     Returns:
     - userEntries: A list of the users entries.
     """
     filepath = getInputLong(stdscr, "Enter the file path: ")
     try:
-        userEntries = loadEntryFromFile(filepath, userEntries)
+        userEntries = loadEntryFromFile(filepath, password, userEntries)
     except FileNotFoundError:
         stdscr.clear()
         stdscr.addstr(1, 0, "File not found.")
@@ -334,13 +337,14 @@ def generate_password(stdscr):
     stdscr.getch()
 
 
-def edit_password(stdscr, username: str, userEntries: list) -> None:
+def edit_password(stdscr, username: str, password : str, userEntries: list) -> None:
     """
     Edits an existing password.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - password: The password of the user.
     - userEntries: A list of the users entries.
     """
     site = get_input(stdscr, "Enter the name/web-URL/site you want to edit: ")
@@ -446,17 +450,18 @@ def edit_password(stdscr, username: str, userEntries: list) -> None:
         userEntries.append(current_entry)
         return
     userEntries.append(current_entry)
-    if saveToDisk(username, userEntries):
+    if saveToDisk(username, password, userEntries):
         pass    
 
 
-def delete_password(stdscr, username: str, userEntries: list) -> None:
+def delete_password(stdscr, username: str, password : str, userEntries: list) -> None:
     """
     Deletes a password entry.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the user.
+    - password: The password of the user.
     - userEntries: A list of the users entries.
     """
     
@@ -469,7 +474,7 @@ def delete_password(stdscr, username: str, userEntries: list) -> None:
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
             stdscr.refresh()
             stdscr.getch()
-            if saveToDisk(username, userEntries):
+            if saveToDisk(username, password, userEntries):
                 pass
             else:
                 stdscr.clear()
@@ -507,7 +512,7 @@ def find_password(stdscr, userEntries):
             break
     if current_row == 0:
         site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
-        from .findPasswords import findPasswordByUrl
+        from source.findPasswords import findPasswordByUrl
         entry = findPasswordByUrl(userEntries, site)
         if entry is not None:
             if entry.website == site:
@@ -521,7 +526,7 @@ def find_password(stdscr, userEntries):
                 return
     elif current_row == 1:
         pattern = get_input(stdscr, "Enter the pattern you want to find: ")
-        from .findPasswords import findPasswordByPattern
+        from findPasswords import findPasswordByPattern
         entries = findPasswordByPattern(userEntries, pattern)
         if len(entries) > 0:
             view_all_sites(stdscr, entries)
@@ -567,7 +572,7 @@ def main(stdscr):
                 stdscr.refresh()
                 stdscr.getch()
                 if valid:
-                    password_manager(stdscr, username)
+                    password_manager(stdscr, username, password)
             elif current_row == 1:
                 username = get_input(stdscr, "Enter username: ")
                 if userExists(username):
@@ -624,13 +629,14 @@ def view_all_sites(stdscr, userEntries: list) -> None:
     stdscr.refresh()
     stdscr.getch()
 
-def password_manager(stdscr, username: str):
+def password_manager(stdscr, username: str, password: str) -> None:
     """
     The password manager menu for a logged-in user.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     - username: The username of the logged-in user.
+    - password: The password of the logged-in user.
     """
     current_row = 0
 
@@ -645,38 +651,40 @@ def password_manager(stdscr, username: str):
         "Export to File",
         "Logout",
     ]
-    userEntries = loadFromDisk(username)
-
+    userEntries = loadFromDisk(username, password)
+    with open("log.txt", "a") as log:
+        log.write(f"{datetime.date.today()} Entries: {userEntries}\n")
     while True:
         print_menu(stdscr, current_row, menu)
         key = stdscr.getch()
-        if saveToDisk(username, userEntries):
-            pass
-        else:
-            stdscr.clear()
-            stdscr.addstr(1, 0, "Failed to save entries.")
-            stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
-            stdscr.refresh()
-            stdscr.getch()
+        # Unneccessary? and courses problems with encryption
+        #if saveToDisk(username, password, userEntries):
+            #pass
+        #else:
+            #stdscr.clear()
+            #stdscr.addstr(1, 0, "Failed to save entries.")
+            #stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
+            #stdscr.refresh()
+            #stdscr.getch()
         if key == curses.KEY_UP and current_row > 0:
             current_row -= 1
         elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
             current_row += 1
         elif key == ord("\n"):
             if current_row == 0:
-                add_site_password(stdscr, username, userEntries)	
+                add_site_password(stdscr, username, password, userEntries)	
             elif current_row == 1:
                 generate_password(stdscr)
             elif current_row == 2:
-                edit_password(stdscr, username, userEntries)
+                edit_password(stdscr, username, password, userEntries)
             elif current_row == 3:
-                delete_password(stdscr, username, userEntries)
+                delete_password(stdscr, username, password, userEntries)
             elif current_row == 4:
                 find_password(stdscr, userEntries)
             elif current_row == 5:
                 view_all_sites(stdscr, userEntries)
             elif current_row == 6:
-                userEntries = loadFromFile(stdscr, userEntries)
+                userEntries = loadFromFile(stdscr, password, userEntries)
             elif current_row == 7:
                 exportToFile(stdscr, username, userEntries)
             elif current_row == 8:

@@ -5,7 +5,7 @@ from source.diskManagement import saveToDisk, loadFromDisk, getFilepath, loadEnt
 
 class TestDiskManagement(unittest.TestCase):
     def testGetFilepath(self) -> None:
-        self.assertEqual(getFilepath("test_user"), os.getcwd()+ "/resources/test_user_entries.json")
+        self.assertEqual(getFilepath("test_user"), os.getcwd()+ "/resources/test_user_entries.enc")
     
     def testCreateFile(self) -> None:
         os.remove(getFilepath("test_user"))
@@ -16,13 +16,13 @@ class TestDiskManagement(unittest.TestCase):
 
     def testSaveToDisk(self) -> None:
         createFile("test_user1")
-        self.assertTrue(saveToDisk("test_user1", []))
-        self.assertFalse(saveToDisk("test_user2", []))
+        self.assertTrue(saveToDisk("test_user1","user1_password", []))
+        self.assertFalse(saveToDisk("test_user2","user1_password", []))
         os.remove(getFilepath("test_user1"))
 
     def testLoadFromDisk(self) -> None:
         createFile("test_user1")
-        self.assertEqual(loadFromDisk("test_user1"), [])
+        self.assertEqual(loadFromDisk("test_user1","user1_password"), [])
         os.remove(getFilepath("test_user1"))
 
     def testLoadEntryFromFile(self) -> None:
@@ -38,8 +38,8 @@ class TestDiskManagement(unittest.TestCase):
         ]
         """
         with open("test.json", "w") as file:
-            file.write(contents)  
-        self.assertEqual(loadEntryFromFile("test.json", []), [entry("x", "a", "a", "a", [])]) 
+            file.write(contents)
+        self.assertEqual(loadEntryFromFile("test.json", []),[entry("x", "a", "a", "a", [])]) 
         os.remove("test.json")
 
     def testExportToDisk(self) -> None:

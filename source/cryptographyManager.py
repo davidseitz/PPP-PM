@@ -1,0 +1,149 @@
+"""this module is responsible for encrypting and decrypting the content of a file
+"""
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
+import datetime
+
+def decryptContent(password: str, username: str) -> str:
+    """Decrypt the content of a file and returns it as a string
+
+    Args:
+        password (str): password to decrypt the content
+        username (str): username for the file to decrypt
+
+    Returns:
+        str: decrypted content
+    """
+    # Read the encrypted content from the file
+    filePath = f'resources/{username}_entries.enc'
+    with open(filePath, 'rb') as file:
+        encryptedContent = file.read()
+
+    # Extract the salt and IV from the encrypted content
+    salt = encryptedContent[:16]
+    initializationVector = encryptedContent[16:32]
+
+    # Extract the actual encrypted data
+    encryptedData = encryptedContent[32:]
+    
+    with open("log.txt", "a") as log:
+        log.write(f"{datetime.date.today()} Salt from file: {salt}\n")
+        log.write(f"{datetime.date.today()} IV from file: {initializationVector}\n")
+        log.write(f"{datetime.date.today()} Encrypted content from file: {encryptedData}\n")
+
+    # Derive a key from the password using PBKDF2HMAC
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    key = kdf.derive(password.encode())
+
+    # Create an AES cipher with CBC mode
+    try:
+        cipher = Cipher(algorithms.AES(key), modes.CBC(initializationVector), backend=default_backend())
+    except ValueError:
+        return ""
+    
+    # Decrypt the encrypted data
+    decryptor = cipher.decryptor()
+    decryptedContent = decryptor.update(encryptedData)
+
+    try:
+        decryptedContent += decryptor.finalize()
+        with open("log.txt", "a") as log:
+            log.write(f"{datetime.date.today()} Decrypted content: {decryptedContent}\n")
+    except ValueError:
+        with open("log.txt", "a") as log:
+            log.write(f"{datetime.date.today()} Decryption failed during finalization\n")
+        return ""
+
+    # Create an unpadder with PKCS7 padding scheme
+    unpadder = padding.PKCS7(128).unpadder()
+    with open("log.txt", "a") as log:
+        log.write(f"{datetime.date.today()} unpadder: {unpadder}\n")
+    # Unpad the decrypted content
+    try:
+        unpaddedContent = unpadder.update(decryptedContent) + unpadder.finalize()
+        with open("log.txt", "a") as log:
+            log.write(f"{datetime.date.today()} unpadded + finilized: {unpaddedContent}\n")
+    except ValueError:
+        with open("log.txt", "a") as log:
+            log.write(f"{datetime.date.today()} Unpadding failed during finalization\n")
+        return ""
+
+    # Return the decrypted content
+    return unpaddedContent.decode()
+
+def encryptContent(content: str, password: str, username: str) -> bool:
+    """Encrypts the content and writes it to a file
+
+    Args:
+        content (str): content to encrypt
+        password (str): password to encrypt the content
+        username (str): username for the file to encrypt
+
+    Returns:
+        bool: True if the file was written successfully, False otherwise
+    """
+    # Generate a salt for PBKDF2HMAC key derivation
+    salt = os.urandom(16)
+
+    # Derive a key from the password using PBKDF2HMAC
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    key = kdf.derive(password.encode())
+
+    # Generate a random IV
+    initializationVector = os.urandom(16)
+    
+    # Create an AES cipher with CBC mode
+    cipher = Cipher(algorithms.AES(key), modes.CBC(initializationVector), backend=default_backend())
+    encryptor = cipher.encryptor()
+
+    # Pad the content using PKCS7 padding scheme
+    padder = padding.PKCS7(128).padder()
+    paddedData = padder.update(content.encode()) + padder.finalize()
+
+    # Encrypt the padded data
+    encryptedContent = encryptor.update(paddedData) + encryptor.finalize()
+
+    # Write the salt, IV, and encrypted content to the file
+    filePath = f'resources/{username}_entries.enc'
+    try:
+        with open(filePath, 'wb') as file:
+            with open("log.txt", "a") as log:
+                log.write(f"{datetime.date.today()} Salt: {salt}\n")
+                log.write(f"{datetime.date.today()} IV: {initializationVector}\n")
+                log.write(f"{datetime.date.today()} Encrypted content: {encryptedContent}\n")
+            file.write(salt + initializationVector + encryptedContent)
+        return True
+    except FileNotFoundError:
+        return False
+
+from source.entry import entry
+if __name__ == "__main__":
+    #values = decryptContent("test", "test")
+    #print(values)
+    #e1 = entry("test", "test", "test", "test")
+    #values = str([e1.__dict__])
+    #encryptContent(values, "test", "username")
+    values = decryptContent("test", "test")
+    print(values)
+    #e2 = entry("new", "new", "new", "ne")
+    #es = [e1, e2]
+    #values = str([e.__dict__ for e in es])
+    #encryptContent(values, "test", "username")
+    #values = decryptContent("test", "username")
+    #print(values)

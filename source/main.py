@@ -7,3 +7,5 @@ import menu
 def main() -> None:
     menu.curses.wrapper(menu.main)
     
+if __name__ == "__main__":
+    main()

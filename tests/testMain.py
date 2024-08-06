@@ -3,12 +3,13 @@ This file is used to run all the tests in the tests folder
 """
 import unittest
 
-from tests.testEntry import TestEntry
-from tests.testFindPasswords import TestFindPasswords
-from .testCheckPwned import TestHaveIBeenPwned
-from .testCheckPassword import TestCheckPassword
-from .testsUserManagement import TestUserManagement
-from .testDiskManagement import TestDiskManagement
+from testEntry import TestEntry
+from testFindPasswords import TestFindPasswords
+from testCheckPwned import TestHaveIBeenPwned
+from testCheckPassword import TestCheckPassword
+from testsUserManagement import TestUserManagement
+from testDiskManagement import TestDiskManagement
+from testCryptographyManager import TestCryptographyManager
 
 def testMain() -> None:
     """
@@ -58,6 +59,13 @@ def testMain() -> None:
     suite.addTest(TestDiskManagement('testCreateFile'))
     suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
     suite.addTest(TestDiskManagement('testExportToDisk'))
+    
+    #CryptographyManager tests
+    suite.addTest(TestCryptographyManager('testEncryptContent'))
+    suite.addTest(TestCryptographyManager('testDecryptContent'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
+
+if __name__ == "__main__":
+    testMain()
