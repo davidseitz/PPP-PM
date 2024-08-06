@@ -14,8 +14,6 @@ def checkPassword(password: str) -> bool:
         return False
     if not _checkSpecial(password):
         return False
-    if not _checkPwned(password):
-        return False
     return True
 
 def _checkLength(password: str) -> bool:
@@ -56,3 +54,13 @@ def _checkPwned(password: str) -> bool:
         return False
     else:
         return True
+    
+def checkDuplicate(password: str, userEntries: list) -> bool:
+    """
+    Check if a password has been used before
+    """
+    passwords = []
+    for entry in userEntries:
+        passwords.append(entry.password)
+        passwords.extend(entry.oldPasswords)
+    return password in passwords 

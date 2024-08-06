@@ -11,7 +11,10 @@ def checkPawned(password: str) -> int:
     """
     password = hashPassword(password)
     url = 'https://api.pwnedpasswords.com/range/' + password[:5]
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=3)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f'Error fetching: {e}, check the API and try again')
     if response.status_code != 200:
         raise RuntimeError(f'Error fetching: {response.status_code}, check the API and try again')
     hashes = (line.split(':') for line in response.text.splitlines())

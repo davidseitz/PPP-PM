@@ -19,6 +19,8 @@ import curses
 import random
 import string
 
+from source import checkPwned
+from source.checkPassword import checkDuplicate
 from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
 
 from .userManagement import saveUser, validateUser, userExists
@@ -136,30 +138,11 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.refresh()
         stdscr.getch()
         return
+    if not evaluatePassword(stdscr, password, userEntries):
+        return
+    
     note = get_input(stdscr, "Enter any notes: ")
     
-    from .checkPassword import checkPassword
-
-    if not checkPassword(password):
-        stdscr.clear()
-        stdscr.addstr(1, 0, "Password may be insecure.")
-        stdscr.addstr(2, 0, "To ensure security, please use a password with at least 12 characters.")
-        stdscr.addstr(3, 0, "Including uppercase and lowercase letters, digits, and special characters.")
-        stdscr.addstr(4, 0, "You're password may also have appreaed on the Have I been Pwned database.")
-        stdscr.addstr(5, 0, "Do you want to continue? (y/n)")
-        answer: bool = False
-        while True:
-            key = stdscr.getch()
-            if key == ord("y"):
-                answer = True
-                break
-            elif key == ord("n"):
-                answer = False
-                break
-        stdscr.refresh()
-        stdscr.getch()  
-        if not answer:
-            return
     e = entry(site, password, user, note)
     if not e in userEntries:
         userEntries.append(e)       
@@ -170,7 +153,7 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.refresh()
         stdscr.getch()
         return
-
+        
     stdscr.clear()
     if saveToDisk(username, userEntries):
         stdscr.addstr(1, 0, "Entry saved!")
@@ -182,7 +165,81 @@ def add_site_password(stdscr,username, userEntries):
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
         stdscr.getch()
-
+    
+def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
+    from .checkPassword import checkPassword
+    if not checkPassword(password):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Password may be insecure.")
+        stdscr.addstr(2, 0, "To ensure security, please use a password with at least 12 characters.")
+        stdscr.addstr(3, 0, "Including uppercase and lowercase letters, digits, and special characters.")
+        stdscr.addstr(4, 0, "Do you want to continue? (y/n)")
+        answer: bool = False
+        while True:
+            key = stdscr.getch()
+            if key == ord("y"):
+                answer = True
+                break
+            elif key == ord("n"):
+                answer = False
+                break
+        stdscr.refresh() 
+        if not answer:
+            return False
+    try:
+        wasPwned = checkPwned.checkPawned(password)
+        if wasPwned:
+            stdscr.clear()
+            stdscr.addstr(1, 0, f"Password has been pawned {wasPwned} times.")
+            stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
+            answer: bool = False
+            while True:
+                key = stdscr.getch()
+                if key == ord("y"):
+                    answer = True
+                    break
+                elif key == ord("n"):
+                    answer = False
+                    break
+            stdscr.refresh()
+            if not answer:
+                return  False  
+    except checkPwned.RequestError as e:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Failed to check if password has been pawned.")
+        stdscr.addstr(2, 0, f"API request failed: \"{e}\".")
+        stdscr.addstr(3, 0, "Do you want to continue anyway? (y/n)")
+        answer: bool = False
+        while True:
+            key = stdscr.getch()
+            if key == ord("y"):
+                answer = True
+                break
+            elif key == ord("n"):
+                answer = False
+                break
+        stdscr.refresh()
+        stdscr.getch()
+        if not answer:
+            return False
+        
+    if checkDuplicate(password, userEntries):
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Password already exists.")
+        stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
+        answer: bool = False
+        while True:
+            key = stdscr.getch()
+            if key == ord("y"):
+                answer = True
+                break
+            elif key == ord("n"):
+                answer = False
+                break
+        stdscr.refresh()
+        if not answer:
+            return False
+    return True
 
 def loadFromFile(stdscr, userEntries: list) -> list:
     """
@@ -435,18 +492,39 @@ def find_password(stdscr, userEntries):
 
     Parameters:
     - stdscr: The standard screen object from curses.
-    - username: The username of the user.
+    - userEntries: A list of the users entries.
     """
-    site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
-    for entry in userEntries:
-        if entry.website == site:
-            stdscr.clear()
-            stdscr.addstr(1, 0, f"Password for {site}: {entry.password}")
-            stdscr.addstr(2, 0, f"Username: {entry.username}")
-            stdscr.addstr(3, 0, f"Notes: {entry.notes}")
-            stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
-            stdscr.refresh()
-            stdscr.getch()
+    menu = ["Find by URL", "Find by pattern"]
+    current_row = 0
+    while True:
+        print_menu(stdscr, current_row, menu)
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
+            current_row += 1
+        elif key == ord("\n"):
+            break
+    if current_row == 0:
+        site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
+        from .findPasswords import findPasswordByUrl
+        entry = findPasswordByUrl(userEntries, site)
+        if entry is not None:
+            if entry.website == site:
+                stdscr.clear()
+                stdscr.addstr(1, 0, f"Password for {site}: {entry.password}")
+                stdscr.addstr(2, 0, f"Username: {entry.username}")
+                stdscr.addstr(3, 0, f"Notes: {entry.notes}")
+                stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
+                stdscr.refresh()
+                stdscr.getch()
+                return
+    elif current_row == 1:
+        pattern = get_input(stdscr, "Enter the pattern you want to find: ")
+        from .findPasswords import findPasswordByPattern
+        entries = findPasswordByPattern(userEntries, pattern)
+        if len(entries) > 0:
+            view_all_sites(stdscr, entries)
             return
 
     stdscr.clear()
@@ -532,8 +610,11 @@ def view_all_sites(stdscr, userEntries: list) -> None:
     stdscr.clear()
     for entry in userEntries:
         display_entry(stdscr, entry)
-        stdscr.addstr(6, 0, "Press any key to view the next entry.")
-        stdscr.getch()
+        if entry != userEntries[-1]:
+            stdscr.addstr(6, 0, "Press any key to view the next entry.")
+            stdscr.getch()
+        else:
+            break
     if len(userEntries) == 0:
         stdscr.clear()
         stdscr.addstr(1, 0, "No entries found.")
