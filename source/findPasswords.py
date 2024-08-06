@@ -21,4 +21,6 @@ def findPasswordByPattern(userEntries: list, pattern: str) -> list:
             entries.append(e)
         elif pattern in e.notes:
             entries.append(e)
+        elif pattern in e.password:
+            entries.append(e)
     return entries

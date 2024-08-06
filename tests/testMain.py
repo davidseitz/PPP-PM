@@ -4,6 +4,7 @@ This file is used to run all the tests in the tests folder
 import unittest
 
 from tests.testEntry import TestEntry
+from tests.testFindPasswords import TestFindPasswords
 from .testCheckPwned import TestHaveIBeenPwned
 from .testCheckPassword import TestCheckPassword
 from .testsUserManagement import TestUserManagement
@@ -46,6 +47,10 @@ def testMain() -> None:
     suite.addTest(TestEntry('testUpdateWebsite'))
     suite.addTest(TestEntry('testStr'))
     suite.addTest(TestEntry('testEq'))
+
+    #findPassword tests
+    suite.addTest(TestFindPasswords('testFindPasswordByUrl'))
+    suite.addTest(TestFindPasswords('testFindPasswordByPattern'))
 
     #DiskManagement tests
     suite.addTest(TestDiskManagement('testSaveToDisk'))
