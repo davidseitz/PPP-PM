@@ -3,7 +3,7 @@ This file contains the tests for the checkPassword.py file.
 """
 import unittest
 from source.checkPassword import checkPassword, _checkLength, _checkLowercase, \
-    _checkUppercase, _checkDigit, _checkSpecial, _checkPwned
+    _checkUppercase, _checkDigit, _checkSpecial
 
 class TestCheckPassword(unittest.TestCase):
     """
@@ -11,6 +11,11 @@ class TestCheckPassword(unittest.TestCase):
     """
     def testCheckPassword(self) -> None:
         self.assertTrue(checkPassword("Test1234!!@sadadad42311231."))
+        self.assertFalse(checkPassword("Test1234"))
+        self.assertFalse(checkPassword("test1234!!@sadadad42311231."))
+        self.assertFalse(checkPassword("TEST1234!!@42311231."))
+        self.assertFalse(checkPassword("Test!@sadadada"))
+        
 
     def testCheckLength(self) -> None:
         self.assertTrue(_checkLength("Test1234!234"))
@@ -32,7 +37,3 @@ class TestCheckPassword(unittest.TestCase):
     def testCheckSpecial(self) -> None:
         self.assertTrue(_checkSpecial("Test1234!"))
         self.assertFalse(_checkSpecial("Test1234"))
-
-    def testCheckPwned(self) -> None:
-        self.assertTrue(_checkPwned("Test1234!@sadadad42311231."))
-        self.assertFalse(_checkPwned("12345"))
