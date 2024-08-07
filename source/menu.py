@@ -256,7 +256,7 @@ def loadFromFile(stdscr, password: str, userEntries: list) -> list:
     """
     filepath = getInputLong(stdscr, "Enter the file path: ")
     try:
-        userEntries = loadEntryFromFile(filepath, password, userEntries)
+        userEntries = loadEntryFromFile(filepath, userEntries)
     except FileNotFoundError:
         stdscr.clear()
         stdscr.addstr(1, 0, "File not found.")
@@ -580,8 +580,8 @@ def main(stdscr):
                     stdscr.refresh()
                     stdscr.getch()
                 else:
-                    password = get_input(stdscr, "Enter password: ")
-                    saveUser(username, masterPassword)
+                    newMasterPassword = get_input(stdscr, "Enter password: ")
+                    saveUser(username, newMasterPassword)
                     stdscr.clear()
                     stdscr.addstr(1, 0, "User registered successfully.")
                     stdscr.refresh()
