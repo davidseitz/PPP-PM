@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
-import datetime
 
 def decryptContent(password: str, username: str) -> str:
     """Decrypt the content of a file and returns it as a string
@@ -20,8 +19,11 @@ def decryptContent(password: str, username: str) -> str:
     """
     # Read the encrypted content from the file
     filePath = f'resources/{username}_entries.enc'
-    with open(filePath, 'rb') as file:
-        encryptedContent = file.read()
+    try:
+        with open(filePath, 'rb') as file:
+            encryptedContent = file.read()
+    except FileNotFoundError:
+        return ""
 
     # Extract the salt and IV from the encrypted content
     salt = encryptedContent[:16]
@@ -45,7 +47,6 @@ def decryptContent(password: str, username: str) -> str:
         cipher = Cipher(algorithms.AES(key), modes.CBC(initializationVector), backend=default_backend())
     except ValueError:
         return ""
-    
     # Decrypt the encrypted data
     decryptor = cipher.decryptor()
     decryptedContent = decryptor.update(encryptedData)
@@ -57,7 +58,6 @@ def decryptContent(password: str, username: str) -> str:
 
     # Create an unpadder with PKCS7 padding scheme
     unpadder = padding.PKCS7(128).unpadder()
-    
     # Unpad the decrypted content
     try:
         unpaddedContent = unpadder.update(decryptedContent) + unpadder.finalize()
@@ -93,7 +93,6 @@ def encryptContent(content: str, password: str, username: str) -> bool:
 
     # Generate a random IV
     initializationVector = os.urandom(16)
-    
     # Create an AES cipher with CBC mode
     cipher = Cipher(algorithms.AES(key), modes.CBC(initializationVector), backend=default_backend())
     encryptor = cipher.encryptor()
@@ -114,6 +113,5 @@ def encryptContent(content: str, password: str, username: str) -> bool:
     except FileNotFoundError:
         return False
 
-from source.entry import entry
 if __name__ == "__main__":
     pass

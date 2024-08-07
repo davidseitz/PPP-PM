@@ -16,3 +16,9 @@ class TestCryptographyManager(unittest.TestCase):
         self.assertTrue(encryptContent("test", "password", "username"))
         self.assertEqual(decryptContent("password", "username"), "test")
         os.remove("resources/username_entries.enc")
+        
+        self.assertTrue(encryptContent("", "password", "username"))
+        self.assertEqual(decryptContent("password", "username"), "")
+        os.remove("resources/username_entries.enc")
+        
+        self.assertEqual(decryptContent("password", "username"), "")
