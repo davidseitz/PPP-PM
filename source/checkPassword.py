@@ -1,4 +1,4 @@
-from source.checkPwned import checkPawned
+""" Module for checking password strength and duplicates """
 
 def checkPassword(password: str) -> bool:
     """
@@ -45,7 +45,7 @@ def _checkSpecial(password: str) -> bool:
     Check if a password has at least one special character
     """
     return any(not char.isalnum() for char in password)
-    
+
 def checkDuplicate(password: str, userEntries: list) -> bool:
     """
     Check if a password has been used before
@@ -54,4 +54,4 @@ def checkDuplicate(password: str, userEntries: list) -> bool:
     for entry in userEntries:
         passwords.append(entry.password)
         passwords.extend(entry.oldPasswords)
-    return password in passwords 
+    return password in passwords

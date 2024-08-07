@@ -1,12 +1,13 @@
+""" This module contains functions to find passwords in the user's password manager """
 from source.entry import entry
 
 def findPasswordByUrl(userEntries: list, url: str) -> entry:
     """
     Find the password for a given website
     """
-    for e in userEntries:
-        if e.website == url:
-            return e
+    for userEntry in userEntries:
+        if userEntry.website == url:
+            return userEntry
     return None
 
 def findPasswordByPattern(userEntries: list, pattern: str) -> list:
@@ -14,13 +15,13 @@ def findPasswordByPattern(userEntries: list, pattern: str) -> list:
     Find the password for a given pattern
     """
     entries = []
-    for e in userEntries:
-        if pattern in e.website:
-            entries.append(e)
-        elif pattern in e.username:
-            entries.append(e)
-        elif pattern in e.notes:
-            entries.append(e)
-        elif pattern in e.password:
-            entries.append(e)
+    for userEntry in userEntries:
+        if pattern in userEntry.website:
+            entries.append(userEntry)
+        elif pattern in userEntry.username:
+            entries.append(userEntry)
+        elif pattern in userEntry.notes:
+            entries.append(userEntry)
+        elif pattern in userEntry.password:
+            entries.append(userEntry)
     return entries

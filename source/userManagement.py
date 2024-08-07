@@ -1,9 +1,10 @@
+""" This module contains functions for managing user information. """
 import json
 import os
 import time
+import hashlib
 
 from source.diskManagement import getFilepath
-import hashlib
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
@@ -17,10 +18,10 @@ def saveUser(username, password):
     - password: The password of the user.
     """
     filename = f"{username}_user.json"
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    hashedPassword = hashlib.sha256(password.encode()).hexdigest()
     userData = {
         "username": username,
-        "password": hashed_password,
+        "password": hashedPassword,
         "failed_attempts": 0,
         "lockout_time": 0,
     }
@@ -47,13 +48,13 @@ def validateUser(username, password):
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
-            current_time = time.time()
+            currentTime = time.time()
 
-            if current_time < user.get("lockout_time", 0):
+            if currentTime < user.get("lockout_time", 0):
                 return False, "Account locked due to multiple failed attempts. Try again later."
 
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            if user["username"] == username and user["password"] == hashed_password:
+            hashedPassword = hashlib.sha256(password.encode()).hexdigest()
+            if user["username"] == username and user["password"] == hashedPassword:
                 user["failed_attempts"] = 0
                 user["lockout_time"] = 0
                 with open(filename, "w", encoding="utf-8") as file:
@@ -62,7 +63,7 @@ def validateUser(username, password):
 
             user["failed_attempts"] = user.get("failed_attempts", 0) + 1
             if user["failed_attempts"] >= MAX_ATTEMPTS:
-                user["lockout_time"] = current_time + LOCKOUT_TIME
+                user["lockout_time"] = currentTime + LOCKOUT_TIME
             with open(filename, "w", encoding="utf-8") as file:
                 json.dump(user, file, indent=4)
             return False, "Invalid username or password."

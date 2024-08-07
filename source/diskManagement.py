@@ -1,3 +1,4 @@
+""" This module is responsible for managing the user's entries on disk """
 import json
 import os
 from source.entry import entry
@@ -22,12 +23,12 @@ def loadFromDisk(user: str, password : str) -> list:
         try:
             decrypted_entries = decryptContent(password,user)
             contents = json.loads(decrypted_entries.replace("'", "\""))
-            for e in contents:
-                website = e["website"]
-                password = e["password"]
-                username = e["username"]
-                notes = e["notes"]
-                oldPasswords = e["oldPasswords"]
+            for value in contents:
+                website = value["website"]
+                password = value["password"]
+                username = value["username"]
+                notes = value["notes"]
+                oldPasswords = value["oldPasswords"]
                 userEntries.append(entry(website, password, username, notes, oldPasswords))
         except json.JSONDecodeError:
             pass
@@ -52,15 +53,15 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
     with open(filepath, "r") as file:
         contents = json.load(file)
     try:
-        for e in contents:
-            website = e["website"]
-            password = e["password"]
-            username = e["username"]
-            notes = e["notes"]
-            oldPasswords = e["oldPasswords"]
+        for value in contents:
+            website = value["website"]
+            password = value["password"]
+            username = value["username"]
+            notes = value["notes"]
+            oldPasswords = value["oldPasswords"]
             userEntries.append(entry(website, password, username, notes, oldPasswords))
     except json.JSONDecodeError:
-        raise ValueError("Invalid file format") 
+        raise ValueError("Invalid file format")
     return userEntries
 
 def getFilepath(user: str) -> str:
@@ -77,5 +78,4 @@ def exportToDisk(user: str, userEntries: list) -> str:
     with open(filename, "w") as file:
         json.dump([entry.__dict__ for entry in userEntries], file, indent=4)
     return filename
-
-            
+         
