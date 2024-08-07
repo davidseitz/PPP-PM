@@ -5,6 +5,8 @@ __pycache__/
 
 #json files
 *.json
+
+#encrypted files
 *.enc
 
 # C extensions
