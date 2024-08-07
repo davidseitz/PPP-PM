@@ -5,6 +5,7 @@ __pycache__/
 
 #json files
 *.json
+*.enc
 
 # C extensions
 *.so
