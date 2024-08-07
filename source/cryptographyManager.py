@@ -29,11 +29,6 @@ def decryptContent(password: str, username: str) -> str:
 
     # Extract the actual encrypted data
     encryptedData = encryptedContent[32:]
-    
-    with open("log.txt", "a") as log:
-        log.write(f"{datetime.date.today()} Salt from file: {salt}\n")
-        log.write(f"{datetime.date.today()} IV from file: {initializationVector}\n")
-        log.write(f"{datetime.date.today()} Encrypted content from file: {encryptedData}\n")
 
     # Derive a key from the password using PBKDF2HMAC
     kdf = PBKDF2HMAC(
@@ -57,25 +52,16 @@ def decryptContent(password: str, username: str) -> str:
 
     try:
         decryptedContent += decryptor.finalize()
-        with open("log.txt", "a") as log:
-            log.write(f"{datetime.date.today()} Decrypted content: {decryptedContent}\n")
     except ValueError:
-        with open("log.txt", "a") as log:
-            log.write(f"{datetime.date.today()} Decryption failed during finalization\n")
         return ""
 
     # Create an unpadder with PKCS7 padding scheme
     unpadder = padding.PKCS7(128).unpadder()
-    with open("log.txt", "a") as log:
-        log.write(f"{datetime.date.today()} unpadder: {unpadder}\n")
+    
     # Unpad the decrypted content
     try:
         unpaddedContent = unpadder.update(decryptedContent) + unpadder.finalize()
-        with open("log.txt", "a") as log:
-            log.write(f"{datetime.date.today()} unpadded + finilized: {unpaddedContent}\n")
     except ValueError:
-        with open("log.txt", "a") as log:
-            log.write(f"{datetime.date.today()} Unpadding failed during finalization\n")
         return ""
 
     # Return the decrypted content
@@ -123,10 +109,6 @@ def encryptContent(content: str, password: str, username: str) -> bool:
     filePath = f'resources/{username}_entries.enc'
     try:
         with open(filePath, 'wb') as file:
-            with open("log.txt", "a") as log:
-                log.write(f"{datetime.date.today()} Salt: {salt}\n")
-                log.write(f"{datetime.date.today()} IV: {initializationVector}\n")
-                log.write(f"{datetime.date.today()} Encrypted content: {encryptedContent}\n")
             file.write(salt + initializationVector + encryptedContent)
         return True
     except FileNotFoundError:
@@ -134,16 +116,4 @@ def encryptContent(content: str, password: str, username: str) -> bool:
 
 from source.entry import entry
 if __name__ == "__main__":
-    #values = decryptContent("test", "test")
-    #print(values)
-    #e1 = entry("test", "test", "test", "test")
-    #values = str([e1.__dict__])
-    #encryptContent(values, "test", "username")
-    values = decryptContent("test", "test")
-    print(values)
-    #e2 = entry("new", "new", "new", "ne")
-    #es = [e1, e2]
-    #values = str([e.__dict__ for e in es])
-    #encryptContent(values, "test", "username")
-    #values = decryptContent("test", "username")
-    #print(values)
+    pass
