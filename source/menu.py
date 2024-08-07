@@ -243,12 +243,13 @@ def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
             return False
     return True
 
-def loadFromFile(stdscr, password: str, userEntries: list) -> list:
+def loadFromFile(stdscr, username: str, password: str, userEntries: list) -> list:
     """
     Load the user's entries from disk
 
     Parameters:
     - stdscr: The standard screen object from curses.
+    - username: The username of the user.
     - password: The password of the user.
 
     Returns:
@@ -257,6 +258,7 @@ def loadFromFile(stdscr, password: str, userEntries: list) -> list:
     filepath = getInputLong(stdscr, "Enter the file path: ")
     try:
         userEntries = loadEntryFromFile(filepath, userEntries)
+        saveToDisk(username, password, userEntries)
     except FileNotFoundError:
         stdscr.clear()
         stdscr.addstr(1, 0, "File not found.")
@@ -681,7 +683,7 @@ def password_manager(stdscr, username: str, masterPassword: str) -> None:
             elif currentRow == 5:
                 view_all_sites(stdscr, userEntries)
             elif currentRow == 6:
-                userEntries = loadFromFile(stdscr, masterPassword, userEntries)
+                userEntries = loadFromFile(stdscr,username, masterPassword, userEntries)
             elif currentRow == 7:
                 exportToFile(stdscr, username, userEntries)
             elif currentRow == 8:
