@@ -112,6 +112,3 @@ def encryptContent(content: str, password: str, username: str) -> bool:
         return True
     except FileNotFoundError:
         return False
-
-if __name__ == "__main__":
-    pass
