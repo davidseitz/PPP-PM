@@ -6,6 +6,9 @@ __pycache__/
 #json files
 *.json
 
+#qr Codes
+qr.png
+
 #encrypted files
 *.enc
 

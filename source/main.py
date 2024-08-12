@@ -2,7 +2,7 @@
 This is the main function of the program.
 It initializes the menu and starts the program execution.
 """
-from source import menu
+import menu
 
 def main() -> None:
     menu.curses.wrapper(menu.main)

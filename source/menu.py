@@ -2,57 +2,58 @@
 This module provides a command-line password manager using curses for the UI.
 
 Functions:
-- print_menu: Displays a menu in the terminal.
-- get_input: Prompts the user for input.
+- printMenu: Displays a menu in the terminal.
+- getInput: Prompts the user for input.
 - validateUser: Validates user login credentials.
-- add_site_password: Adds a new password for a site.
-- generate_password: Generates a random password based on user criteria.
-- edit_password: Edits an existing password.
-- delete_password: Deletes a password entry.
-- find_password: Finds and displays a password for a site.
-- view_all_sites: Display all entries in the terminal.
-- password_manager: The password manager menu for a logged-in user.
+- addSitePassword: Adds a new password for a site.
+- generatePassword: Generates a random password based on user criteria.
+- editPassword: Edits an existing password.
+- deletePassword: Deletes a password entry.
+- findPassword: Finds and displays a password for a site.
+- viewAllSites: Display all entries in the terminal.
+- passwordManager: The password manager menu for a logged-in user.
 - _terminalToSmall: Displays a message if the terminal is too small.
 - main: The main function to run the password manager.
 """
 import curses
 import random
 import string
+import sys
 
 
-from source.checkPwned import checkPawned
-from source.checkPassword import checkDuplicate
-from source.diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
+from checkPwned import checkPawned
+from checkPassword import checkDuplicate
+from diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
 
-from source.userManagement import saveUser, validateUser, userExists
-from source.entry import entry
+from userManagement import saveUser, validateUser, userExists
+from entry import entry
 
-def print_menu(stdscr, selected_row_idx, menu):
+def printMenu(stdscr :curses.window, selectedRowIdx :int, menu :list) -> None:
     """
     Displays a menu in the terminal.
 
     Parameters:
     - stdscr: The standard screen object from curses.
-    - selected_row_idx: Index of the currently selected row.
+    - selectedRowIdx: Index of the currently selected row.
     - menu: List of menu items to display.
     """
     try:
         stdscr.clear()
-        h, w = stdscr.getmaxyx()
+        height, width = stdscr.getmaxyx()
 
         for idx, row in enumerate(menu):
-            x = w // 2 - len(row) // 2
-            y = h // 2 - len(menu) // 2 + idx
-            if idx == selected_row_idx:
+            xCordinate = width // 2 - len(row) // 2
+            yCordinate = height // 2 - len(menu) // 2 + idx
+            if idx == selectedRowIdx:
                 stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, row)
+                stdscr.addstr(yCordinate, xCordinate, row)
                 stdscr.attroff(curses.color_pair(1))
             else:
-                stdscr.addstr(y, x, row)
+                stdscr.addstr(yCordinate, xCordinate, row)
         stdscr.refresh()
     except curses.error:
         _terminalToSmall(stdscr)
-def exportToFile(stdscr,username: str, userEntries: list) -> None:
+def exportToFile(stdscr :curses.window,username: str, userEntries: list) -> None:
     """
     Export the user's entries to a file.
 
@@ -69,7 +70,7 @@ def exportToFile(stdscr,username: str, userEntries: list) -> None:
     stdscr.getch()
 
 
-def _terminalToSmall(stdscr):
+def _terminalToSmall(stdscr :curses.window) -> None:
     try:
         stdscr.clear()
         stdscr.addstr(1, 0, "Please resize the terminal to be larger.")
@@ -77,11 +78,11 @@ def _terminalToSmall(stdscr):
         stdscr.refresh()
         stdscr.getch()
     except curses.error:
-        with open("error.log", "w") as f:
-            print("Please resize the terminal to be larger and restart the application.\n", file=f)
-        exit(1)
+        with open("error.log", "w") as errorLog:
+            print("Please resize the terminal to be larger and restart the application.\n", file=errorLog)
+        sys.exit(1)
 
-def get_input(stdscr, prompt):
+def getInput(stdscr :curses.window, prompt: str) -> str:
     """
     Prompts the user for input.
 
@@ -90,37 +91,37 @@ def get_input(stdscr, prompt):
     - prompt: The prompt message to display.
 
     Returns:
-    - user_input: The input from the user as a string.
+    - userInput: The input from the user as a string.
     """
     stdscr.clear()
-    h, w = stdscr.getmaxyx()
-    stdscr.addstr(h // 2 - 1, w // 2 - len(prompt) // 2, prompt)
+    height, width = stdscr.getmaxyx()
+    stdscr.addstr(height // 2 - 1, width // 2 - len(prompt) // 2, prompt)
     stdscr.refresh()
 
-    input_win = curses.newwin(1, len(prompt) + 10, h // 2, w // 2 - len(prompt) // 2)
+    inputWin = curses.newwin(1, len(prompt) + 10, height // 2, width // 2 - len(prompt) // 2)
     curses.echo()  # Enable input echoing
-    user_input = input_win.getstr().decode("utf-8")
+    userInput = inputWin.getstr().decode("utf-8")
     curses.noecho()  # Disable input echoing
-    return user_input
+    return userInput
 
-def getInputLong(stdscr, prompt: str) -> str:
+def getInputLong(stdscr :curses.window, prompt: str) -> str:
     """
     Prompts the user for input. That may be longer than the terminal width.
     """
 
     stdscr.clear()
-    h, w = stdscr.getmaxyx()
-    stdscr.addstr(h // 2 - 1, 0, prompt)
+    height, width = stdscr.getmaxyx()
+    stdscr.addstr(height // 2 - 1, 0, prompt)
     stdscr.refresh()
 
-    input_win = curses.newwin(1, w, h // 2, 0)
+    inputWin = curses.newwin(1, width, height // 2, 0)
     curses.echo()  # Enable input echoing
-    user_input = input_win.getstr().decode("utf-8")
+    userInput = inputWin.getstr().decode("utf-8")
     curses.noecho()  # Disable input echoing
-    return user_input
+    return userInput
 
 
-def add_site_password(stdscr,username, masterPassword, userEntries):
+def addSitePassword(stdscr :curses.window, username: str, masterPassword: str, userEntries: list) -> None:
     """
     Adds a new password for a site.
 
@@ -130,10 +131,10 @@ def add_site_password(stdscr,username, masterPassword, userEntries):
     - masterPassword: The masterPassword of the user.
     - userEntries: A list of the users entries.
     """
-    site = get_input(stdscr, "Enter the name/web-URL/site you want to add: ")
-    user = get_input(stdscr, "Enter the username: ")
-    password = get_input(stdscr, "Enter the password: ")
-    if get_input(stdscr, "Re-enter the password: ") != password:
+    site = getInput(stdscr, "Enter the name/web-URL/site you want to add: ")
+    user = getInput(stdscr, "Enter the username: ")
+    password = getInput(stdscr, "Enter the password: ")
+    if getInput(stdscr, "Re-enter the password: ") != password:
         stdscr.clear()
         stdscr.addstr(1, 0, "Passwords do not match.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -143,11 +144,11 @@ def add_site_password(stdscr,username, masterPassword, userEntries):
     if not evaluatePassword(stdscr, password, userEntries):
         return
 
-    note = get_input(stdscr, "Enter any notes: ")
+    note = getInput(stdscr, "Enter any notes: ")
 
-    e = entry(site, password, user, note)
-    if not e in userEntries:
-        userEntries.append(e)
+    newEntry = entry(site, password, user, note)
+    if not newEntry in userEntries:
+        userEntries.append(newEntry)
     else:
         stdscr.clear()
         stdscr.addstr(1, 0, f"Entry for website {site} already exists.")
@@ -168,15 +169,23 @@ def add_site_password(stdscr,username, masterPassword, userEntries):
         stdscr.refresh()
         stdscr.getch()
 
-def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
-    from source.checkPassword import checkPassword
+def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) -> bool:
+    """
+    Evaluates the password for security.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    - password: The password to evaluate.
+    - userEntries: A list of the users entries.
+    """
+    from checkPassword import checkPassword
     if not checkPassword(password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password may be insecure.")
         stdscr.addstr(2, 0, "To ensure security, please use a password with at least 12 characters.")
         stdscr.addstr(3, 0, "Including uppercase and lowercase letters, digits, and special characters.")
         stdscr.addstr(4, 0, "Do you want to continue? (y/n)")
-        answer: bool = False
+        answer: bool
         while True:
             key = stdscr.getch()
             if key == ord("y"):
@@ -194,56 +203,56 @@ def evaluatePassword(stdscr, password: str, userEntries: list) -> bool:
             stdscr.clear()
             stdscr.addstr(1, 0, f"Password has been pawned {wasPwned} times.")
             stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
-            answer: bool = False
+            answer3: bool = False
             while True:
                 key = stdscr.getch()
                 if key == ord("y"):
-                    answer = True
+                    answer3 = True
                     break
                 elif key == ord("n"):
-                    answer = False
+                    answer3 = False
                     break
             stdscr.refresh()
-            if not answer:
+            if not answer3:
                 return  False
-    except RuntimeError as e:
+    except RuntimeError as error:
         stdscr.clear()
         stdscr.addstr(1, 0, "Failed to check if password has been pawned.")
-        stdscr.addstr(3, 0, f"API request failed: \"{e}\".")
+        stdscr.addstr(3, 0, f"API request failed: \"{error}\".")
         stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
-        answer: bool = False
+        answer2: bool = False
         while True:
             key = stdscr.getch()
             if key == ord("y"):
-                answer = True
+                answer2 = True
                 break
             elif key == ord("n"):
-                answer = False
+                answer2 = False
                 break
         stdscr.refresh()
         stdscr.getch()
-        if not answer:
+        if not answer2:
             return False
 
     if checkDuplicate(password, userEntries):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password already exists.")
         stdscr.addstr(2, 0, "Do you want to continue anyway? (y/n)")
-        answer: bool = False
+        answer4: bool = False
         while True:
             key = stdscr.getch()
             if key == ord("y"):
-                answer = True
+                answer4 = True
                 break
             elif key == ord("n"):
-                answer = False
+                answer4 = False
                 break
         stdscr.refresh()
-        if not answer:
+        if not answer4:
             return False
     return True
 
-def loadFromFile(stdscr, username: str, password: str, userEntries: list) -> list:
+def loadFromFile(stdscr :curses.window, username: str, password: str, userEntries: list) -> list:
     """
     Load the user's entries from disk
 
@@ -273,60 +282,60 @@ def loadFromFile(stdscr, username: str, password: str, userEntries: list) -> lis
         stdscr.getch()
     return userEntries
 
-def generate_password(stdscr):
+def generatePassword(stdscr :curses.window) -> None:
     """
     Generates a random password based on user criteria.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     """
-    length = int(get_input(stdscr, "Enter password length: "))
+    length = int(getInput(stdscr, "Enter password length: "))
 
-    options = [
+    optionsPassword = [
         "Include uppercase letters",
         "Include lowercase letters",
         "Include digits",
         "Include special characters",
     ]
 
-    selected_options = [False] * len(options)
-    current_option_idx = 0
+    selectedOptions = [False] * len(optionsPassword)
+    currentOptionIdx = 0
 
     while True:
         stdscr.clear()
         stdscr.addstr(0, 0, "Select character types (press Space to choose and Enter to confirm):")
-        for idx, option in enumerate(options):
-            if selected_options[idx]:
-                option_text = "[X] " + option
+        for idx, option in enumerate(optionsPassword):
+            if selectedOptions[idx]:
+                optionText = "[X] " + option
             else:
-                option_text = "[ ] " + option
-            if idx == current_option_idx:
+                optionText = "[ ] " + option
+            if idx == currentOptionIdx:
                 stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(1 + idx, 0, option_text)
+                stdscr.addstr(1 + idx, 0, optionText)
                 stdscr.attroff(curses.color_pair(1))
             else:
-                stdscr.addstr(1 + idx, 0, option_text)
+                stdscr.addstr(1 + idx, 0, optionText)
         stdscr.refresh()
 
         key = stdscr.getch()
-        if key == curses.KEY_UP and current_option_idx > 0:
-            current_option_idx -= 1
-        elif key == curses.KEY_DOWN and current_option_idx < len(options) - 1:
-            current_option_idx += 1
+        if key == curses.KEY_UP and currentOptionIdx > 0:
+            currentOptionIdx -= 1
+        elif key == curses.KEY_DOWN and currentOptionIdx < len(optionsPassword) - 1:
+            currentOptionIdx += 1
         elif key == ord(" "):
-            selected_options[current_option_idx] = not selected_options[current_option_idx]
+            selectedOptions[currentOptionIdx] = not selectedOptions[currentOptionIdx]
         elif key == ord("\n"):
-            if any(selected_options):
+            if any(selectedOptions):
                 break
 
     characters = ""
-    if selected_options[0]:  # Include uppercase letters
+    if selectedOptions[0]:  # Include uppercase letters
         characters += string.ascii_uppercase
-    if selected_options[1]:  # Include lowercase letters
+    if selectedOptions[1]:  # Include lowercase letters
         characters += string.ascii_lowercase
-    if selected_options[2]:  # Include digits
+    if selectedOptions[2]:  # Include digits
         characters += string.digits
-    if selected_options[3]:  # Include special characters
+    if selectedOptions[3]:  # Include special characters
         characters += string.punctuation
 
     password = "".join(random.choice(characters) for i in range(length))
@@ -338,7 +347,7 @@ def generate_password(stdscr):
     stdscr.getch()
 
 
-def edit_password(stdscr, username: str, password : str, userEntries: list) -> None:
+def editPassword(stdscr :curses.window, username: str, password : str, userEntries: list) -> None:
     """
     Edits an existing password.
 
@@ -348,14 +357,14 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
     - password: The password of the user.
     - userEntries: A list of the users entries.
     """
-    site = get_input(stdscr, "Enter the name/web-URL/site you want to edit: ")
-    current_entry = None
-    for entry in userEntries:
-        if entry.website == site:
-            current_entry = entry
-            userEntries.remove(entry)
+    site = getInput(stdscr, "Enter the name/web-URL/site you want to edit: ")
+    currentEntry = None
+    for _entry in userEntries:
+        if _entry.website == site:
+            currentEntry = _entry
+            userEntries.remove(_entry)
             break
-    if current_entry is None:
+    if currentEntry is None:
         stdscr.clear()
         stdscr.addstr(1, 0, "Site not found.")
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -363,7 +372,7 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
         stdscr.getch()
         return
     stdscr.clear()
-    display_entry(stdscr, current_entry)
+    displayEntry(stdscr, currentEntry)
     stdscr.addstr(6, 0, "Is this the entry you want to edit? (y/n)")
     answer: bool = False
     while True:
@@ -374,6 +383,8 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
         elif key == ord("n"):
             answer = False
             break
+        else:
+            pass
     stdscr.refresh()
     if not answer:
         return
@@ -387,13 +398,13 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
     stdscr.refresh()
     key = stdscr.getch()
     if key == ord("1"):
-        new_site = get_input(stdscr, "Enter the new website: ")
+        newSite = getInput(stdscr, "Enter the new website: ")
         changeable = True
-        for entry in userEntries:
-            if entry.website == new_site:
+        for _entry in userEntries:
+            if _entry.website == newSite:
                 changeable = False
                 break
-        if changeable and current_entry.updateWebsite(new_site):
+        if changeable and currentEntry.updateWebsite(newSite):
             stdscr.clear()
             stdscr.addstr(1, 0, "Website updated!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -406,8 +417,8 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
             stdscr.refresh()
             stdscr.getch()
     elif key == ord("2"):
-        new_username = get_input(stdscr, "Enter the new username: ")
-        if current_entry.updateUsername(new_username):
+        newUsername = getInput(stdscr, "Enter the new username: ")
+        if currentEntry.updateUsername(newUsername):
             stdscr.clear()
             stdscr.addstr(1, 0, "Username updated!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -420,8 +431,8 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
             stdscr.refresh()
             stdscr.getch()
     elif key == ord("3"):
-        new_password = get_input(stdscr, "Enter the new password: ")
-        if evaluatePassword(stdscr, new_password, userEntries) and current_entry.updatePassword(new_password):
+        newPassword = getInput(stdscr, "Enter the new password: ")
+        if evaluatePassword(stdscr, newPassword, userEntries) and currentEntry.updatePassword(newPassword):
             stdscr.clear()
             stdscr.addstr(1, 0, "Password updated!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -434,8 +445,8 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
             stdscr.refresh()
             stdscr.getch()
     elif key == ord("4"):
-        new_notes = get_input(stdscr, "Enter the new notes: ")
-        if current_entry.updateNotes(new_notes):
+        newNotes = getInput(stdscr, "Enter the new notes: ")
+        if currentEntry.updateNotes(newNotes):
             stdscr.clear()
             stdscr.addstr(1, 0, "Notes updated!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -448,14 +459,14 @@ def edit_password(stdscr, username: str, password : str, userEntries: list) -> N
             stdscr.refresh()
             stdscr.getch()
     elif key == ord("5"):
-        userEntries.append(current_entry)
+        userEntries.append(currentEntry)
         return
-    userEntries.append(current_entry)
+    userEntries.append(currentEntry)
     if saveToDisk(username, password, userEntries):
         pass
 
 
-def delete_password(stdscr, username: str, password : str, userEntries: list) -> None:
+def deletePassword(stdscr :curses.window, username: str, password : str, userEntries: list) -> None:
     """
     Deletes a password entry.
 
@@ -466,10 +477,10 @@ def delete_password(stdscr, username: str, password : str, userEntries: list) ->
     - userEntries: A list of the users entries.
     """
 
-    site = get_input(stdscr, "Enter the name/web-URL/site you want to delete: ")
-    for entry in userEntries:
-        if entry.website == site:
-            userEntries.remove(entry)
+    site = getInput(stdscr, "Enter the name/web-URL/site you want to delete: ")
+    for _entry in userEntries:
+        if _entry.website == site:
+            userEntries.remove(_entry)
             stdscr.clear()
             stdscr.addstr(1, 0, "Entry deleted!")
             stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
@@ -492,7 +503,7 @@ def delete_password(stdscr, username: str, password : str, userEntries: list) ->
     stdscr.getch()
 
 
-def find_password(stdscr, userEntries):
+def findPassword(stdscr :curses.window, userEntries: list) -> None:
     """
     Finds and displays a password for a site.
 
@@ -503,7 +514,7 @@ def find_password(stdscr, userEntries):
     menu = ["Find by URL", "Find by pattern"]
     currentRow = 0
     while True:
-        print_menu(stdscr, currentRow, menu)
+        printMenu(stdscr, currentRow, menu)
         key = stdscr.getch()
         if key == curses.KEY_UP and currentRow > 0:
             currentRow -= 1
@@ -512,25 +523,25 @@ def find_password(stdscr, userEntries):
         elif key == ord("\n"):
             break
     if currentRow == 0:
-        site = get_input(stdscr, "Enter the name/web-URL/site you want to find: ")
-        from source.findPasswords import findPasswordByUrl
-        entry = findPasswordByUrl(userEntries, site)
-        if entry is not None:
-            if entry.website == site:
+        site = getInput(stdscr, "Enter the name/web-URL/site you want to find: ")
+        from findPasswords import findPasswordByUrl
+        _entry = findPasswordByUrl(userEntries, site)
+        if _entry is not None:
+            if _entry.website == site:
                 stdscr.clear()
-                stdscr.addstr(1, 0, f"Password for {site}: {entry.password}")
-                stdscr.addstr(2, 0, f"Username: {entry.username}")
-                stdscr.addstr(3, 0, f"Notes: {entry.notes}")
+                stdscr.addstr(1, 0, f"Password for {site}: {_entry.password}")
+                stdscr.addstr(2, 0, f"Username: {_entry.username}")
+                stdscr.addstr(3, 0, f"Notes: {_entry.notes}")
                 stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
                 stdscr.refresh()
                 stdscr.getch()
                 return
     elif currentRow == 1:
-        pattern = get_input(stdscr, "Enter the pattern you want to find: ")
+        pattern = getInput(stdscr, "Enter the pattern you want to find: ")
         from findPasswords import findPasswordByPattern
         entries = findPasswordByPattern(userEntries, pattern)
         if len(entries) > 0:
-            view_all_sites(stdscr, entries)
+            viewAllSites(stdscr, entries)
             return
 
     stdscr.clear()
@@ -539,14 +550,62 @@ def find_password(stdscr, userEntries):
     stdscr.refresh()
     stdscr.getch()
 
+def activate2FA(stdscr: curses.window, username: str) -> None:
+    """
+    Activate 2FA for the user.
 
-def main(stdscr):
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    """
+    stdscr.clear()
+    stdscr.addstr(1,0, "You need an authentication app like google authenticator to activate 2FA")
+    stdscr.addstr(3,0, "Please enter you're E-mail address:")
+    userMail = getInput(stdscr, "Enter the E-mail address: ")
+    import secondFactor
+    secondFactorObject = secondFactor.SecondFactor(username)
+    secondFactorObject.generateQrCode(userMail)
+    stdscr.clear()
+    stdscr.addstr(1, 0, "QR-Code generated in your cwd.")
+    stdscr.addstr(2, 0, "Please scan this QR-Code with your authentication app.")
+    stdscr.addstr(3, 0, "2FA is now activated.")
+    stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
+    stdscr.refresh()
+    stdscr.getch()
+    stdscr.clear()
+
+
+def options(stdscr: curses.window, username) -> None:
+    """
+    Display the options menu.
+
+    Parameters:
+    - stdscr: The standard screen object from curses.
+    """
+    menu = ["Activate 2FA",
+            "Return to Manager Menu"]
+    currentRow = 0
+    while True:
+        printMenu(stdscr, currentRow, menu)
+        key = stdscr.getch()
+        if key == curses.KEY_UP and currentRow > 0:
+            currentRow -= 1
+        elif key == curses.KEY_DOWN and currentRow < len(menu) - 1:
+            currentRow += 1
+        elif key == ord("\n"):
+            break
+    if currentRow == 0:
+        activate2FA(stdscr, username)
+    elif currentRow == 1:
+        return
+
+def main(stdscr: curses.window) -> None:
     """
     The main function to run the password manager.
 
     Parameters:
     - stdscr: The standard screen object from curses.
     """
+    stdscr = curses.initscr()
     curses.curs_set(0)
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
@@ -556,7 +615,7 @@ def main(stdscr):
     menu = ["Login", "Register", "Exit"]
 
     while True:
-        print_menu(stdscr, currentRow, menu)
+        printMenu(stdscr, currentRow, menu)
         key = stdscr.getch()
 
         if key == curses.KEY_UP and currentRow > 0:
@@ -565,24 +624,39 @@ def main(stdscr):
             currentRow += 1
         elif key == ord("\n"):
             if currentRow == 0:
-                username = get_input(stdscr, "Enter username: ")
-                masterPassword = get_input(stdscr, "Enter password: ")
+                username = getInput(stdscr, "Enter username: ")
+                masterPassword = getInput(stdscr, "Enter password: ")
                 valid, message = validateUser(username, masterPassword)
                 stdscr.clear()
                 stdscr.addstr(1, 0, message)
                 stdscr.refresh()
                 stdscr.getch()
+                if message == "2FA required.":
+                    stdscr.clear()
+                    stdscr.addstr(1, 0, "2FA required.")
+                    stdscr.addstr(2, 0, "Please enter the code from your authentication app:")
+                    code = getInput(stdscr, "Please enter the code from your authentication app: ")
+                    import secondFactor
+                    secondFactorObject = secondFactor.SecondFactor(username)
+                    if secondFactorObject.validateCode(code):
+                        valid = True
+                    else:
+                        stdscr.clear()
+                        stdscr.addstr(1, 0, "Invalid code.")
+                        stdscr.addstr(2, 0, "Press any key to return to the Login menu.")
+                        stdscr.refresh()
+                        stdscr.getch()
                 if valid:
-                    password_manager(stdscr, username, masterPassword)
+                    passwordManager(stdscr, username, masterPassword)
             elif currentRow == 1:
-                username = get_input(stdscr, "Enter username: ")
+                username = getInput(stdscr, "Enter username: ")
                 if userExists(username):
                     stdscr.clear()
                     stdscr.addstr(1, 0, "Username already exists.")
                     stdscr.refresh()
                     stdscr.getch()
                 else:
-                    newMasterPassword = get_input(stdscr, "Enter password: ")
+                    newMasterPassword = getInput(stdscr, "Enter password: ")
                     saveUser(username, newMasterPassword)
                     stdscr.clear()
                     stdscr.addstr(1, 0, "User registered successfully.")
@@ -592,22 +666,22 @@ def main(stdscr):
                 break
 
 
-def display_entry(stdscr, entry: entry) -> None:
+def displayEntry(stdscr: curses.window, entryO: entry) -> None:
     """
     Display an entry in the terminal.
 
     Parameters:
     - stdscr: The standard screen object from curses.
-    - entry: The entry to display.
+    - en: The entry to display.
     """
     stdscr.clear()
-    stdscr.addstr(1, 0, f"Website: {entry.website}")
-    stdscr.addstr(2, 0, f"Username: {entry.username}")
-    stdscr.addstr(3, 0, f"Password: {entry.password}")
-    stdscr.addstr(4, 0, f"Notes: {entry.notes}")
+    stdscr.addstr(1, 0, f"Website: {entryO.website}")
+    stdscr.addstr(2, 0, f"Username: {entryO.username}")
+    stdscr.addstr(3, 0, f"Password: {entryO.password}")
+    stdscr.addstr(4, 0, f"Notes: {entryO.notes}")
     stdscr.addstr(5, 0, "-" * 50)
 
-def view_all_sites(stdscr, userEntries: list) -> None:
+def viewAllSites(stdscr :curses.window, userEntries: list) -> None:
     """
     Display all entries in the terminal.
 
@@ -616,9 +690,9 @@ def view_all_sites(stdscr, userEntries: list) -> None:
     - userEntries: A list of the users entries.
     """
     stdscr.clear()
-    for entry in userEntries:
-        display_entry(stdscr, entry)
-        if entry != userEntries[-1]:
+    for _entry in userEntries:
+        displayEntry(stdscr, _entry)
+        if _entry != userEntries[-1]:
             stdscr.addstr(6, 0, "Press any key to view the next entry.")
             stdscr.getch()
         else:
@@ -630,7 +704,7 @@ def view_all_sites(stdscr, userEntries: list) -> None:
     stdscr.refresh()
     stdscr.getch()
 
-def password_manager(stdscr, username: str, masterPassword: str) -> None:
+def passwordManager(stdscr :curses.window, username: str, masterPassword: str) -> None:
     """
     The password manager menu for a logged-in user.
 
@@ -650,11 +724,12 @@ def password_manager(stdscr, username: str, masterPassword: str) -> None:
         "View All Sites",
         "Load from File",
         "Export to File",
+        "Options",
         "Logout",
     ]
     userEntries = loadFromDisk(username, masterPassword)
     while True:
-        print_menu(stdscr, currentRow, menu)
+        printMenu(stdscr, currentRow, menu)
         key = stdscr.getch()
         # Unneccessary? and courses problems with encryption
         #if saveToDisk(username, password, userEntries):
@@ -670,24 +745,27 @@ def password_manager(stdscr, username: str, masterPassword: str) -> None:
         elif key == curses.KEY_DOWN and currentRow < len(menu) - 1:
             currentRow += 1
         elif key == ord("\n"):
-            if currentRow == 0:
-                add_site_password(stdscr, username, masterPassword, userEntries)
-            elif currentRow == 1:
-                generate_password(stdscr)
-            elif currentRow == 2:
-                edit_password(stdscr, username, masterPassword, userEntries)
-            elif currentRow == 3:
-                delete_password(stdscr, username, masterPassword, userEntries)
-            elif currentRow == 4:
-                find_password(stdscr, userEntries)
-            elif currentRow == 5:
-                view_all_sites(stdscr, userEntries)
-            elif currentRow == 6:
-                userEntries = loadFromFile(stdscr,username, masterPassword, userEntries)
-            elif currentRow == 7:
-                exportToFile(stdscr, username, userEntries)
-            elif currentRow == 8:
-                break
+            match currentRow:
+                case 0:
+                    addSitePassword(stdscr, username, masterPassword, userEntries)
+                case 1:
+                    generatePassword(stdscr)
+                case 2:
+                    editPassword(stdscr, username, masterPassword, userEntries)
+                case 3:
+                    deletePassword(stdscr, username, masterPassword, userEntries)
+                case 4:
+                    findPassword(stdscr, userEntries)
+                case 5:
+                    viewAllSites(stdscr, userEntries)
+                case 6:
+                    userEntries = loadFromFile(stdscr,username, masterPassword, userEntries)
+                case 7:
+                    exportToFile(stdscr, username, userEntries)
+                case 8:
+                    options(stdscr, username)
+                case 9:
+                    break
 
 
 if __name__ == "__main__":

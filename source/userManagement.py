@@ -4,12 +4,12 @@ import os
 import time
 import hashlib
 
-from source.diskManagement import getFilepath
+from diskManagement import getFilepath
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
 
-def saveUser(username, password):
+def saveUser(username: str, password: str) -> None:
     """
     Saves user information to a JSON file.
 
@@ -17,13 +17,16 @@ def saveUser(username, password):
     - username: The username of the user.
     - password: The password of the user.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     hashedPassword = hashlib.sha256(password.encode()).hexdigest()
     userData = {
         "username": username,
         "password": hashedPassword,
         "failed_attempts": 0,
         "lockout_time": 0,
+        "2fa_enabled": False,
+        "2fa_secret": "",
+        "2fa_mail": ""
     }
 
     with open(filename, "w", encoding="utf-8") as file:
@@ -33,7 +36,7 @@ def saveUser(username, password):
         os.utime(path, None)
 
 
-def validateUser(username, password):
+def validateUser(username: str, password:str) -> tuple:
     """
     Validates user login credentials.
 
@@ -44,7 +47,7 @@ def validateUser(username, password):
     Returns:
     - A tuple containing a boolean indicating if the validation was successful and a message.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
@@ -59,6 +62,8 @@ def validateUser(username, password):
                 user["lockout_time"] = 0
                 with open(filename, "w", encoding="utf-8") as file:
                     json.dump(user, file, indent=4)
+                if user["2fa_enabled"]:
+                    return False, "2FA required."
                 return True, "Login successful."
 
             user["failed_attempts"] = user.get("failed_attempts", 0) + 1
@@ -66,12 +71,11 @@ def validateUser(username, password):
                 user["lockout_time"] = currentTime + LOCKOUT_TIME
             with open(filename, "w", encoding="utf-8") as file:
                 json.dump(user, file, indent=4)
-            return False, "Invalid username or password."
-
+            return False, "Invalid username or password." 
     return False, "Invalid username or password."
 
 
-def userExists(username):
+def userExists(username : str) -> bool:
     """
     Checks if a user already exists.
 
@@ -81,5 +85,5 @@ def userExists(username):
     Returns:
     - True if the user exists, False otherwise.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     return os.path.exists(filename)

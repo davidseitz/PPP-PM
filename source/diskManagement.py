@@ -1,8 +1,8 @@
 """ This module is responsible for managing the user's entries on disk """
 import json
 import os
-from source.entry import entry
-from source.cryptographyManager import decryptContent, encryptContent
+from entry import entry
+from cryptographyManager import decryptContent, encryptContent
 
 def saveToDisk(user: str, password :str, userEntries: list) -> bool:
     """
@@ -10,7 +10,7 @@ def saveToDisk(user: str, password :str, userEntries: list) -> bool:
     """
     filename = f"resources/{user}_entries.enc"
     if os.path.exists(filename):
-        return encryptContent(str([entry.__dict__ for entry in userEntries]), password, user)
+        return bool(encryptContent(str([entry.__dict__ for entry in userEntries]), password, user))
     return False
 
 def loadFromDisk(user: str, password : str) -> list:

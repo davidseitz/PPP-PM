@@ -1,5 +1,5 @@
 """ This module contains functions to find passwords in the user's password manager """
-from source.entry import entry
+from entry import entry
 
 def findPasswordByUrl(userEntries: list, url: str) -> entry:
     """

@@ -1,4 +1,5 @@
 """ This class represents an entry in the password manager """
+
 class entry:
     def __init__(self, website: str, password: str, username: str, notes: str = "", oldPasswords: list = []) -> None:
         self.website = website
@@ -45,5 +46,7 @@ class entry:
     def __str__(self) -> str:
         return f"{self.website} - {self.username} - {self.password} - {self.notes}"
 
-    def __eq__(self, value: object) -> bool:
-        return self.website == value.website
+    #suppressed the warning for the following method because it is a magic method
+    #mypy: suppress = no-any-return
+    def __eq__(self, value) -> bool:
+        return bool(self.website == value.website)
