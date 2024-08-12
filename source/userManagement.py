@@ -4,12 +4,12 @@ import os
 import time
 import hashlib
 
-from source.diskManagement import getFilepath
+from diskManagement import getFilepath
 
 MAX_ATTEMPTS = 3
 LOCKOUT_TIME = 60  # 1 minute
 
-def saveUser(username, password):
+def saveUser(username: str, password: str) -> None:
     """
     Saves user information to a JSON file.
 
@@ -33,7 +33,7 @@ def saveUser(username, password):
         os.utime(path, None)
 
 
-def validateUser(username, password):
+def validateUser(username: str, password:str) -> tuple:
     """
     Validates user login credentials.
 
@@ -71,7 +71,7 @@ def validateUser(username, password):
     return False, "Invalid username or password."
 
 
-def userExists(username):
+def userExists(username : str) -> bool:
     """
     Checks if a user already exists.
 
