@@ -29,4 +29,4 @@ class TestUserManagement(unittest.TestCase):
     def testUserExists(self) -> None:
         self.assertTrue(userExists("test_user"))
         self.assertFalse(userExists("wrong_user"))
-        os.remove("test_user_user.json")
+        os.remove("/resources/test_user_user.json")

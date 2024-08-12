@@ -21,8 +21,8 @@ def loadFromDisk(user: str, password : str) -> list:
     filename = f"resources/{user}_entries.enc"
     if os.path.exists(filename):
         try:
-            decrypted_entries = decryptContent(password,user)
-            contents = json.loads(decrypted_entries.replace("'", "\""))
+            decryptedEntries = decryptContent(password,user)
+            contents = json.loads(decryptedEntries.replace("'", "\""))
             for value in contents:
                 website = value["website"]
                 password = value["password"]
@@ -50,7 +50,7 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
     Load an entry from a given file
     This method is not ready for serial use
     """
-    with open(filepath, "r") as file:
+    with open(filepath, "r", encoding="utf-8") as file:
         contents = json.load(file)
     try:
         for value in contents:
@@ -75,7 +75,7 @@ def exportToDisk(user: str, userEntries: list) -> str:
     Export the user's entries to disk
     """
     filename = os.getcwd() + f"/{user}_exports.json"
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump([entry.__dict__ for entry in userEntries], file, indent=4)
     return filename
          

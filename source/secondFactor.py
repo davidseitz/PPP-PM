@@ -1,7 +1,9 @@
+""" This Module contains the class to handel second factor auth"""
+
 import json
+import os
 import pyotp
 import qrcode
-import os
 
 class SecondFactor:
     """
@@ -21,7 +23,7 @@ class SecondFactor:
             user = json.load(file)
             self.email = user["2fa_mail"]
             self.secret = user["2fa_secret"]
-        
+
     def generateUrl(self)->str:
         return pyotp.totp.TOTP(self.secret).provisioning_uri(name=self.email, issuer_name='Password Manager')
 
@@ -39,7 +41,7 @@ class SecondFactor:
         url = self.generateUrl()
         img = qrcode.make(url)
         img.save(os.getcwd() + '/qr.png')
-    
+
     def validateCode(self, code: str)-> bool:
         totp = pyotp.TOTP(self.secret)
         return totp.verify(code)

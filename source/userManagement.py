@@ -17,7 +17,7 @@ def saveUser(username: str, password: str) -> None:
     - username: The username of the user.
     - password: The password of the user.
     """
-    filename = os.getcwd() + f"/{username}_user.json"
+    filename = os.getcwd() + f"/resources/{username}_user.json"
     hashedPassword = hashlib.sha256(password.encode()).hexdigest()
     userData = {
         "username": username,
@@ -47,7 +47,7 @@ def validateUser(username: str, password:str) -> tuple:
     Returns:
     - A tuple containing a boolean indicating if the validation was successful and a message.
     """
-    filename = os.getcwd() + f"/{username}_user.json"
+    filename = os.getcwd() + f"/resources/{username}_user.json"
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
@@ -71,7 +71,7 @@ def validateUser(username: str, password:str) -> tuple:
                 user["lockout_time"] = currentTime + LOCKOUT_TIME
             with open(filename, "w", encoding="utf-8") as file:
                 json.dump(user, file, indent=4)
-            return False, "Invalid username or password." 
+            return False, "Invalid username or password."
     return False, "Invalid username or password."
 
 
@@ -85,5 +85,5 @@ def userExists(username : str) -> bool:
     Returns:
     - True if the user exists, False otherwise.
     """
-    filename = os.getcwd() + f"/{username}_user.json"
+    filename = os.getcwd() + f"/resources/{username}_user.json"
     return os.path.exists(filename)
