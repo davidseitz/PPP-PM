@@ -550,7 +550,7 @@ def findPassword(stdscr :curses.window, userEntries: list) -> None:
     stdscr.refresh()
     stdscr.getch()
 
-def activate2FA(stdscr: curses.window) -> None:
+def activate2FA(stdscr: curses.window, username: str) -> None:
     """
     Activate 2FA for the user.
 
@@ -562,16 +562,19 @@ def activate2FA(stdscr: curses.window) -> None:
     stdscr.addstr(3,0, "Please enter you're E-mail address:")
     userMail = getInput(stdscr, "Enter the E-mail address: ")
     import secondFactor
-    secondFactorObject = secondFactor.SecondFactor(userMail)
-    secondFactorObject.generateQrCode()
+    secondFactorObject = secondFactor.SecondFactor(username)
+    secondFactorObject.generateQrCode(userMail)
     stdscr.clear()
-    stdscr.addstr(1, 0, "QR-Code generated.")
-    stdscr.addstr(2, 0, "Please scan the QR-Code with your authentication app.")
-    stdscr.addstr(3, 0, "Press any key to return to the manager menu.")
+    stdscr.addstr(1, 0, "QR-Code generated in your cwd.")
+    stdscr.addstr(2, 0, "Please scan this QR-Code with your authentication app.")
+    stdscr.addstr(3, 0, "2FA is now activated.")
+    stdscr.addstr(4, 0, "Press any key to return to the manager menu.")
+    stdscr.refresh()
+    stdscr.getch()
     stdscr.clear()
 
 
-def options(stdscr: curses.window) -> None:
+def options(stdscr: curses.window, username) -> None:
     """
     Display the options menu.
 
@@ -591,7 +594,7 @@ def options(stdscr: curses.window) -> None:
         elif key == ord("\n"):
             break
     if currentRow == 0:
-        activate2FA(stdscr)
+        activate2FA(stdscr, username)
     elif currentRow == 1:
         return
 
@@ -628,6 +631,21 @@ def main(stdscr: curses.window) -> None:
                 stdscr.addstr(1, 0, message)
                 stdscr.refresh()
                 stdscr.getch()
+                if message == "2FA required.":
+                    stdscr.clear()
+                    stdscr.addstr(1, 0, "2FA required.")
+                    stdscr.addstr(2, 0, "Please enter the code from your authentication app:")
+                    code = getInput(stdscr, "Please enter the code from your authentication app: ")
+                    import secondFactor
+                    secondFactorObject = secondFactor.SecondFactor(username)
+                    if secondFactorObject.validateCode(code):
+                        valid = True
+                    else:
+                        stdscr.clear()
+                        stdscr.addstr(1, 0, "Invalid code.")
+                        stdscr.addstr(2, 0, "Press any key to return to the Login menu.")
+                        stdscr.refresh()
+                        stdscr.getch()
                 if valid:
                     passwordManager(stdscr, username, masterPassword)
             elif currentRow == 1:
@@ -745,7 +763,7 @@ def passwordManager(stdscr :curses.window, username: str, masterPassword: str) -
                 case 7:
                     exportToFile(stdscr, username, userEntries)
                 case 8:
-                    options(stdscr)
+                    options(stdscr, username)
                 case 9:
                     break
 

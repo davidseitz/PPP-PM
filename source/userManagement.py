@@ -17,13 +17,16 @@ def saveUser(username: str, password: str) -> None:
     - username: The username of the user.
     - password: The password of the user.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     hashedPassword = hashlib.sha256(password.encode()).hexdigest()
     userData = {
         "username": username,
         "password": hashedPassword,
         "failed_attempts": 0,
         "lockout_time": 0,
+        "2fa_enabled": False,
+        "2fa_secret": "",
+        "2fa_mail": ""
     }
 
     with open(filename, "w", encoding="utf-8") as file:
@@ -44,7 +47,7 @@ def validateUser(username: str, password:str) -> tuple:
     Returns:
     - A tuple containing a boolean indicating if the validation was successful and a message.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
@@ -59,6 +62,8 @@ def validateUser(username: str, password:str) -> tuple:
                 user["lockout_time"] = 0
                 with open(filename, "w", encoding="utf-8") as file:
                     json.dump(user, file, indent=4)
+                if user["2fa_enabled"]:
+                    return False, "2FA required."
                 return True, "Login successful."
 
             user["failed_attempts"] = user.get("failed_attempts", 0) + 1
@@ -66,8 +71,7 @@ def validateUser(username: str, password:str) -> tuple:
                 user["lockout_time"] = currentTime + LOCKOUT_TIME
             with open(filename, "w", encoding="utf-8") as file:
                 json.dump(user, file, indent=4)
-            return False, "Invalid username or password."
-
+            return False, "Invalid username or password." 
     return False, "Invalid username or password."
 
 
@@ -81,5 +85,5 @@ def userExists(username : str) -> bool:
     Returns:
     - True if the user exists, False otherwise.
     """
-    filename = f"{username}_user.json"
+    filename = os.getcwd() + f"/{username}_user.json"
     return os.path.exists(filename)
