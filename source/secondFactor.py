@@ -19,7 +19,7 @@ class SecondFactor:
     """
     def __init__(self, username: str)-> None:
         self.username = username
-        filename = os.getcwd() + f"/{username}_user.json"
+        filename = os.getcwd() + f"/resources/{username}_user.json"
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
             self.email = user["2fa_mail"]
@@ -28,10 +28,13 @@ class SecondFactor:
     def generateUrl(self)->str:
         return pyotp.totp.TOTP(self.secret).provisioning_uri(name=self.email, issuer_name='Password Manager')
 
+    def _secret(self)->str:
+        return pyotp.random_base32()
+
     def generateQrCode(self, email: str)-> None:
-        self.secret = pyotp.random_base32()
+        self.secret = self._secret()
         self.email = email
-        filename = os.getcwd() + f"/{self.username}_user.json"
+        filename = os.getcwd() + f"/resources/{self.username}_user.json"
         with open(filename, "r", encoding="utf-8") as file:
             user = json.load(file)
             user["2fa_enabled"] = True

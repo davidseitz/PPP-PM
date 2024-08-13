@@ -10,6 +10,7 @@ from testCheckPassword import TestCheckPassword
 from testsUserManagement import TestUserManagement
 from testDiskManagement import TestDiskManagement
 from testCryptographyManager import TestCryptographyManager
+from testSecondFactor import TestSecondFactor
 
 def testMain() -> None:
     """
@@ -59,6 +60,14 @@ def testMain() -> None:
     suite.addTest(TestDiskManagement('testCreateFile'))
     suite.addTest(TestDiskManagement('testLoadEntryFromFile'))
     suite.addTest(TestDiskManagement('testExportToDisk'))
+
+    #SecondFactor tests
+    testSecondFactor = TestSecondFactor()
+    suite.addTest(TestSecondFactor('testConstructor'))
+    suite.addTest(TestSecondFactor('testGenerateQR'))
+    suite.addTest(TestSecondFactor('testSecret'))
+    suite.addTest(TestSecondFactor('testValidateCode'))
+    suite.addTest(TestSecondFactor('testGenerateUrl'))
     
     #CryptographyManager tests
     suite.addTest(TestCryptographyManager('testEncryptContent'))
@@ -66,6 +75,7 @@ def testMain() -> None:
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
+    testSecondFactor.tearDown()
 
 if __name__ == "__main__":
     testMain()
