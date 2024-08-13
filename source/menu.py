@@ -14,6 +14,9 @@ Functions:
 - passwordManager: The password manager menu for a logged-in user.
 - _terminalToSmall: Displays a message if the terminal is too small.
 - main: The main function to run the password manager.
+- displayEntry: Display an entry in the terminal.
+- exportToFile: Export the user's entries to a file.
+- getInputLong: Prompts the user for input. That may be longer than the terminal width.
 """
 import curses
 import random
@@ -289,7 +292,13 @@ def generatePassword(stdscr :curses.window) -> None:
     Parameters:
     - stdscr: The standard screen object from curses.
     """
-    length = int(getInput(stdscr, "Enter password length: "))
+    length: int
+    while True:
+        try:
+            length = int(getInput(stdscr, "Enter password length: (number)"))
+            break
+        except ValueError:
+            pass
 
     optionsPassword = [
         "Include uppercase letters",
