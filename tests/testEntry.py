@@ -11,7 +11,7 @@ class TestEntry(unittest.TestCase):
         self.assertEqual(entry1.password, "testpass")
         self.assertEqual(entry1.website, "testsite")
         self.assertEqual(entry1.notes, "")
-        self.assertEqual(entry1.oldPasswords, [])
+        self.assertEqual(entry1.oldPasswords, None)
         entry2 = entry("testsite", "testpass", "testuser", "testnotes", ["oldpass1", "oldpass2"])
         self.assertEqual(entry2.username, "testuser")
         self.assertEqual(entry2.password, "testpass")

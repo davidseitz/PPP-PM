@@ -1,4 +1,4 @@
-from source.secondFactor import SecondFactor
+from source.secondFactor import secondFactor as SecondFactor
 import unittest
 import os
 import pyotp

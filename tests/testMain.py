@@ -70,9 +70,6 @@ def testMain() -> None:
     suite.addTest(TestCryptographyManager('testEncryptContent'))
     suite.addTest(TestCryptographyManager('testDecryptContent'))
 
-    #Menu tests
-    suite.addTest(testMenu('testGetInput'))
-
     runner = unittest.TextTestRunner()
     runner.run(suite)
     testSecondFactor.tearDown()

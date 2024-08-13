@@ -1,7 +1,9 @@
 """ This Model contains the entry class """
 class entry:
     """ This class represents an entry in the password manager """
-    def __init__(self, website: str, password: str, username: str, notes: str = "", oldPasswords: list = None) -> None:
+    #suppressed the warning for the following method because [] is not equal to [""]
+    #pylint: disable=W0102
+    def __init__(self, website: str, password: str, username: str, notes: str = "", oldPasswords: list = [""]) -> None:
         self.website = website
         self.password = password
         self.username = username
@@ -19,8 +21,11 @@ class entry:
         """
         if self.password == password:
             return False
-        if password in self.oldPasswords:
-            return False
+        try:
+            if password in self.oldPasswords:
+                return False
+        except TypeError:
+            self.oldPasswords = []
         self.oldPasswords.append(self.password)
         self.password = password
         return True
