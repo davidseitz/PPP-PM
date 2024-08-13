@@ -2,11 +2,12 @@
 
 import json
 import os
+#pylint: disable=import-error
 import pyotp
 #Ignore untyped third party library
 import qrcode #type: ignore
 
-class SecondFactor:
+class secondFactor:
     """
     Class to generate a QR code for the user to scan and enable 2FA
 
@@ -28,10 +29,10 @@ class SecondFactor:
     def generateUrl(self)->str:
         return pyotp.totp.TOTP(self.secret).provisioning_uri(name=self.email, issuer_name='Password Manager')
 
-    def _secret(self)->str:
-        return pyotp.random_base32()
-
     def generateQrCode(self, email: str)-> None:
+        """
+        This method generates a QR code for the user to scan and enable 2FA
+        """
         self.secret = self._secret()
         self.email = email
         filename = os.getcwd() + f"/resources/{self.username}_user.json"
@@ -49,4 +50,9 @@ class SecondFactor:
     def validateCode(self, code: str)-> bool:
         totp = pyotp.TOTP(self.secret)
         return totp.verify(code)
+    # pylint: disable=C0303
+    # pylint: disable=R0201
+    # pylint: enable=C0303
+    def _secret(self)->str:
+        return pyotp.random_base32()
     

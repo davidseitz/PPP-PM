@@ -41,7 +41,7 @@ def createFile(user: str) -> bool:
     filename = getFilepath(user)
     if os.path.exists(filename):
         return False
-    with open(filename, 'a'):
+    with open(filename, 'a', encoding="utf-8"):
         os.utime(filename, None)
     return True
 
@@ -61,7 +61,7 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
             oldPasswords = value["oldPasswords"]
             userEntries.append(entry(website, password, username, notes, oldPasswords))
     except json.JSONDecodeError:
-        raise ValueError("Invalid file format")
+        raise ValueError("Invalid file format") from None
     return userEntries
 
 def getFilepath(user: str) -> str:

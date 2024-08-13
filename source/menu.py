@@ -23,13 +23,14 @@ import random
 import string
 import sys
 
-
+from secondFactor import secondFactor as SecondFactor
 from checkPwned import checkPawned
-from checkPassword import checkDuplicate
+from checkPassword import checkDuplicate, checkPassword
 from diskManagement import loadFromDisk, saveToDisk, loadEntryFromFile, exportToDisk
-
 from userManagement import saveUser, validateUser, userExists
 from entry import entry
+from findPasswords import findPasswordByUrl, findPasswordByPattern
+
 
 def printMenu(stdscr :curses.window, selectedRowIdx :int, menu :list) -> None:
     """
@@ -81,7 +82,7 @@ def _terminalToSmall(stdscr :curses.window) -> None:
         stdscr.refresh()
         stdscr.getch()
     except curses.error:
-        with open("error.log", "w") as errorLog:
+        with open("error.log", "w", encoding="utf-8") as errorLog:
             print("Please resize the terminal to be larger and restart the application.\n", file=errorLog)
         sys.exit(1)
 
@@ -181,7 +182,6 @@ def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) ->
     - password: The password to evaluate.
     - userEntries: A list of the users entries.
     """
-    from checkPassword import checkPassword
     if not checkPassword(password):
         stdscr.clear()
         stdscr.addstr(1, 0, "Password may be insecure.")
@@ -533,7 +533,6 @@ def findPassword(stdscr :curses.window, userEntries: list) -> None:
             break
     if currentRow == 0:
         site = getInput(stdscr, "Enter the name/web-URL/site you want to find: ")
-        from findPasswords import findPasswordByUrl
         _entry = findPasswordByUrl(userEntries, site)
         if _entry is not None:
             if _entry.website == site:
@@ -547,7 +546,6 @@ def findPassword(stdscr :curses.window, userEntries: list) -> None:
                 return
     elif currentRow == 1:
         pattern = getInput(stdscr, "Enter the pattern you want to find: ")
-        from findPasswords import findPasswordByPattern
         entries = findPasswordByPattern(userEntries, pattern)
         if len(entries) > 0:
             viewAllSites(stdscr, entries)
@@ -570,8 +568,7 @@ def activate2FA(stdscr: curses.window, username: str) -> None:
     stdscr.addstr(1,0, "You need an authentication app like google authenticator to activate 2FA")
     stdscr.addstr(3,0, "Please enter you're E-mail address:")
     userMail = getInput(stdscr, "Enter the E-mail address: ")
-    import secondFactor
-    secondFactorObject = secondFactor.SecondFactor(username)
+    secondFactorObject = SecondFactor(username)
     secondFactorObject.generateQrCode(userMail)
     stdscr.clear()
     stdscr.addstr(1, 0, "QR-Code generated in your cwd.")
@@ -645,8 +642,7 @@ def main(stdscr: curses.window) -> None:
                     stdscr.addstr(1, 0, "2FA required.")
                     stdscr.addstr(2, 0, "Please enter the code from your authentication app:")
                     code = getInput(stdscr, "Please enter the code from your authentication app: ")
-                    import secondFactor
-                    secondFactorObject = secondFactor.SecondFactor(username)
+                    secondFactorObject = SecondFactor(username)
                     if secondFactorObject.validateCode(code):
                         valid = True
                     else:

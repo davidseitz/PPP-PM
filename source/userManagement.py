@@ -32,7 +32,7 @@ def saveUser(username: str, password: str) -> None:
     with open(filename, "w", encoding="utf-8") as file:
         json.dump(userData, file, indent=4)
     path = getFilepath(username)
-    with open(path, 'a'):
+    with open(path, 'a', encoding='utf-8'):
         os.utime(path, None)
 
 

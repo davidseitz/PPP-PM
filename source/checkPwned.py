@@ -14,9 +14,9 @@ def checkPawned(password: str) -> int:
     try:
         response = requests.get(url, timeout=3)
     except requests.exceptions.RequestException as error:
-        raise RuntimeError(f'Error fetching: {error}, check the API and try again')
+        raise RuntimeError(f'Error fetching: {error}, check the API and try again') from error
     if response.status_code != 200:
-        raise RuntimeError(f'Error fetching: {response.status_code}, check the API and try again')
+        raise RuntimeError(f'Error fetching: {response.status_code}, check the API and try again') from None
     hashes = (line.split(':') for line in response.text.splitlines())
     for myHash, count in hashes:
         if myHash == password[5:]:

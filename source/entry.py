@@ -1,7 +1,7 @@
 """ This Model contains the entry class """
 class entry:
     """ This class represents an entry in the password manager """
-    def __init__(self, website: str, password: str, username: str, notes: str = "", oldPasswords: list = []) -> None:
+    def __init__(self, website: str, password: str, username: str, notes: str = "", oldPasswords: list = None) -> None:
         self.website = website
         self.password = password
         self.username = username

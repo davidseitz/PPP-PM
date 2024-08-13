@@ -2,6 +2,7 @@
  argument-naming-style=camelCase
  attr-naming-style=camelCase
  class-attribute-naming-style=camelCase
+ class-naming-style=camelCase
  docstring-min-length=5
  function-naming-style=camelCase
  method-naming-style=camelCase
@@ -13,6 +14,7 @@
  max-line-length=160
  max-statements=150
  max-branches=25
+ max-args=10
  [MESSAGES CONTROL]
  disable=R1723
  [MASTER]

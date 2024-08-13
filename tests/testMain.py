@@ -11,6 +11,7 @@ from testsUserManagement import TestUserManagement
 from testDiskManagement import TestDiskManagement
 from testCryptographyManager import TestCryptographyManager
 from testSecondFactor import TestSecondFactor
+from testMenu import testMenu
 
 def testMain() -> None:
     """
@@ -22,10 +23,6 @@ def testMain() -> None:
     #HaveIBeenPwned tests
     suite.addTest(TestHaveIBeenPwned('testHashPassword'))
     suite.addTest(TestHaveIBeenPwned('testCheckPawned'))
-
-    #Menu tests
-    #suite.addTest(TestMenu('test_save_password_update'))
-    #suite.addTest(TestMenu('test_save_password_new'))
 
     #UserManagement tests
     suite.addTest(TestUserManagement('testSaveUser'))
@@ -72,6 +69,9 @@ def testMain() -> None:
     #CryptographyManager tests
     suite.addTest(TestCryptographyManager('testEncryptContent'))
     suite.addTest(TestCryptographyManager('testDecryptContent'))
+
+    #Menu tests
+    suite.addTest(testMenu('testGetInput'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
