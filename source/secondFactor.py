@@ -3,7 +3,8 @@
 import json
 import os
 import pyotp
-import qrcode
+#Ignore untyped third party library
+import qrcode #type: ignore
 
 class SecondFactor:
     """

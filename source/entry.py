@@ -47,5 +47,5 @@ class entry:
         return f"{self.website} - {self.username} - {self.password} - {self.notes}"
 
     #suppressed the warning for the following method because entry isn't initialized yet
-    def __eq__(self, value: entry) -> bool: # type: ignore
+    def __eq__(self, value) -> bool: # type: ignore
         return bool(self.website == value.website)

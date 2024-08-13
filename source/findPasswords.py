@@ -1,10 +1,11 @@
 """ This module contains functions to find passwords in the user's password manager """
 from entry import entry
 
-def findPasswordByUrl(userEntries: list, url: str) -> entry:
+def findPasswordByUrl(userEntries: list, url: str) -> entry|None:
     """
     Find the password for a given website
     """
+    userEntry: entry
     for userEntry in userEntries:
         if userEntry.website == url:
             return userEntry

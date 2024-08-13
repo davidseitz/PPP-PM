@@ -574,7 +574,7 @@ def activate2FA(stdscr: curses.window, username: str) -> None:
     stdscr.clear()
 
 
-def options(stdscr: curses.window, username) -> None:
+def options(stdscr: curses.window, username: str) -> None:
     """
     Display the options menu.
 
