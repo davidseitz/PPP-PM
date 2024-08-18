@@ -43,5 +43,5 @@ class TestDiskManagement(unittest.TestCase):
         os.remove("test.json")
 
     def testExportToDisk(self) -> None:
-        self.assertEqual(exportToDisk("test_user", []), os.getcwd()+ "/test_user_exports.json")
-        os.remove(os.getcwd()+ "/test_user_exports.json")
+        self.assertEqual(exportToDisk("test_user", []), os.getcwd()+ "/resources/test_user_exports.json")
+        os.remove(os.getcwd()+ "/resources/test_user_exports.json")
