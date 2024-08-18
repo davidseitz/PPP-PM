@@ -295,8 +295,11 @@ def generatePassword(stdscr :curses.window) -> None:
     length: int
     while True:
         try:
-            length = int(getInput(stdscr, "Enter password length: (number)"))
-            break
+            length = int(getInput(stdscr, "Enter password length: (number between 12 and 128)"))
+            if 12 <= length <= 128:
+                break
+            else:
+                pass
         except ValueError:
             pass
 
