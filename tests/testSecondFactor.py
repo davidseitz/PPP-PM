@@ -26,7 +26,7 @@ class TestSecondFactor(unittest.TestCase):
         self.assertEqual(secondFactor.secret,"")
         self.assertEqual(secondFactor.generateQrCode("mail"), None)
         self.assertNotEqual(secondFactor.secret, "")
-        self.assertTrue(os.path.exists(f"{os.getcwd()}/qr.png"))
+        self.assertTrue(os.path.exists(f"{os.getcwd()}/resources/qr.png"))
 
     def testSecret(self) -> None:
         saveUser("test_user", "test_password")
@@ -46,13 +46,14 @@ class TestSecondFactor(unittest.TestCase):
         secondFactor.secret = "1234567890"	
         secondFactor.email = "a@mail.de"
         self.assertEqual(secondFactor.generateUrl(), pyotp.totp.TOTP(secondFactor.secret).provisioning_uri(name=secondFactor.email, issuer_name='Password Manager'))
-
+        
     def tearDown(self) -> None:
         try:
-            os.remove(f"{os.getcwd()}/test_user_user.json")
+            os.remove(f"{os.getcwd()}/resources/test_user_user.json")
+            os.remove(f"{os.getcwd()}/resources/test_user_entries.enc")
         except FileNotFoundError:
             pass
         try:
-            os.remove(f"{os.getcwd()}/qr.png")
+            os.remove(f"{os.getcwd()}/resources/qr.png")
         except FileNotFoundError:
             pass

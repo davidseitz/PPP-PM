@@ -45,7 +45,7 @@ class secondFactor:
                 json.dump(user, file, indent=4)
         url = self.generateUrl()
         img = qrcode.make(url)
-        img.save(os.getcwd() + '/qr.png')
+        img.save(os.getcwd() + '/resources/qr.png')
 
     def validateCode(self, code: str)-> bool:
         totp = pyotp.TOTP(self.secret)
