@@ -52,7 +52,6 @@ class secondFactor:
         return totp.verify(code)
     # pylint: disable=C0303
     # C0303: Trailing whitespace disabled because it looks nicer this way
-    # pylint: disable=R0201
     # R0201: Method could be a function disabled because it needs to be a method
     # pylint: enable=C0303
     def _secret(self)->str:

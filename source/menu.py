@@ -399,6 +399,9 @@ def editPassword(stdscr :curses.window, username: str, password : str, userEntri
             pass
     stdscr.refresh()
     if not answer:
+        userEntries.append(currentEntry)
+        if saveToDisk(username, password, userEntries):
+            pass
         return
     stdscr.clear()
     stdscr.addstr(1, 0, "What do you want to edit? (use number to select and press Enter to confirm)")
@@ -640,7 +643,7 @@ def main(stdscr: curses.window) -> None:
                 stdscr.addstr(1, 0, message)
                 stdscr.refresh()
                 stdscr.getch()
-                if message == "2FA required.":
+                if message == "2FA required.": # Überprüfen
                     stdscr.clear()
                     stdscr.addstr(1, 0, "2FA required.")
                     stdscr.addstr(2, 0, "Please enter the code from your authentication app:")
