@@ -38,6 +38,7 @@ class TestSecondFactor(unittest.TestCase):
         saveUser("test_user", "test_password")
         secondFactor = SecondFactor("test_user")
         secondFactor.secret = secondFactor._secret()
+        self.assertTrue(secondFactor.validateCode(pyotp.totp.TOTP(secondFactor.secret).now()))
         self.assertFalse(secondFactor.validateCode("123456"))
 
     def testGenerateUrl(self) -> None:

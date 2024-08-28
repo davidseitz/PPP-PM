@@ -2,6 +2,10 @@ from unittest import TestCase, mock
 from source.menu import main, passwordManager, getInput
 import curses	
 
+# This class contains the tests for the menu.py file.
+# Here is no hopefully no need to test the curses library
+# as it is a standard library and should work as expected
+# The only thing that is tested is the input function TODO
 class testMenu(TestCase):
     def testMain(self) -> None:
         self.assertIsNone(main())

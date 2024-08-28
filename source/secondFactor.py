@@ -48,8 +48,7 @@ class secondFactor:
         img.save(os.getcwd() + '/resources/qr.png')
 
     def validateCode(self, code: str)-> bool:
-        totp = pyotp.TOTP(self.secret)
-        return totp.verify(code)
+        return pyotp.totp.TOTP(self.secret).verify(code)
     # pylint: disable=C0303
     # C0303: Trailing whitespace disabled because it looks nicer this way
     # R0201: Method could be a function disabled because it needs to be a method

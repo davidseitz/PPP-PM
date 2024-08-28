@@ -648,8 +648,7 @@ def main(stdscr: curses.window) -> None:
                     stdscr.addstr(1, 0, "2FA required.")
                     stdscr.addstr(2, 0, "Please enter the code from your authentication app:")
                     code = getInput(stdscr, "Please enter the code from your authentication app: ")
-                    secondFactorObject = SecondFactor(username)
-                    if secondFactorObject.validateCode(code):
+                    if SecondFactor(username).validateCode(code):
                         valid = True
                     else:
                         stdscr.clear()
