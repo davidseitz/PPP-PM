@@ -17,6 +17,8 @@ def saveUser(username: str, password: str) -> None:
     - username: The username of the user.
     - password: The password of the user.
     """
+    if os.path.exists(os.getcwd() + "/resources") == False:
+        os.mkdir(os.getcwd() + "/resources")
     filename = os.getcwd() + f"/resources/{username}_user.json"
     hashedPassword = hashlib.sha256(password.encode()).hexdigest()
     userData = {
