@@ -4,14 +4,14 @@ This file is used to run all the tests in the tests folder
 import unittest
 
 from testEntry import TestEntry
-from testFindPasswords import TestFindPasswords
+from testFindPasswords import uTestFindPasswords as TestFindPasswords
 from testCheckPwned import TestHaveIBeenPwned
 from testCheckPassword import TestCheckPassword
 from testsUserManagement import TestUserManagement
 from testDiskManagement import TestDiskManagement
 from testCryptographyManager import TestCryptographyManager
-from testSecondFactor import TestSecondFactor
-from testMenu import testMenu
+from testSecondFactor import uTestSecondFactor as TestSecondFactor
+#from tests.testMenuPrototype.testMenu import testMenu
 
 def testMain() -> None:
     """
@@ -45,6 +45,7 @@ def testMain() -> None:
     suite.addTest(TestEntry('testUpdateWebsite'))
     suite.addTest(TestEntry('testStr'))
     suite.addTest(TestEntry('testEq'))
+    suite.addTest(TestEntry('testGetLastEditTime'))
 
     #findPassword tests
     suite.addTest(TestFindPasswords('testFindPasswordByUrl'))

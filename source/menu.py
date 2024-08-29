@@ -150,7 +150,7 @@ def addSitePassword(stdscr :curses.window, username: str, masterPassword: str, u
 
     note = getInput(stdscr, "Enter any notes: ")
 
-    newEntry = entry(site, password, user, note)
+    newEntry = entry(site, password, user, notes=note)
     if not newEntry in userEntries:
         userEntries.append(newEntry)
     else:
@@ -283,6 +283,30 @@ def loadFromFile(stdscr :curses.window, username: str, password: str, userEntrie
         stdscr.addstr(2, 0, "Press any key to return to the manager menu.")
         stdscr.refresh()
         stdscr.getch()
+    except TypeError:
+        stdscr.clear()
+        stdscr.addstr(1, 0, "Invalid file format.")
+        stdscr.addstr(2, 0, "You shure you're files syntax looks like this?")
+        example = """
+        [
+            {
+                "website": "x",
+                "password": "a",
+                "username": "a",
+                "notes": "a",
+                "oldPasswords": []
+            }
+        ]
+        """
+        while True:
+            try:
+                for yCor, line in enumerate(example.splitlines(), 2):
+                    stdscr.addstr(yCor, 2, line)
+                break
+            except curses.error:
+                _terminalToSmall(stdscr)
+        stdscr.refresh()
+        stdscr.getch()
     return userEntries
 
 def generatePassword(stdscr :curses.window) -> None:
@@ -385,7 +409,7 @@ def editPassword(stdscr :curses.window, username: str, password : str, userEntri
         return
     stdscr.clear()
     displayEntry(stdscr, currentEntry)
-    stdscr.addstr(6, 0, "Is this the entry you want to edit? (y/n)")
+    stdscr.addstr(7, 0, "Is this the entry you want to edit? (y/n)")
     answer: bool = False
     while True:
         key = stdscr.getch()
@@ -682,14 +706,15 @@ def displayEntry(stdscr: curses.window, entryO: entry) -> None:
 
     Parameters:
     - stdscr: The standard screen object from curses.
-    - en: The entry to display.
+    - entryO: The entry to display.
     """
     stdscr.clear()
     stdscr.addstr(1, 0, f"Website: {entryO.website}")
     stdscr.addstr(2, 0, f"Username: {entryO.username}")
     stdscr.addstr(3, 0, f"Password: {entryO.password}")
     stdscr.addstr(4, 0, f"Notes: {entryO.notes}")
-    stdscr.addstr(5, 0, "-" * 50)
+    stdscr.addstr(5, 0, f"Last changed: {entryO.getLastEditTime()}")
+    stdscr.addstr(6, 0, "-" * 50)
 
 def viewAllSites(stdscr :curses.window, userEntries: list) -> None:
     """
@@ -703,14 +728,14 @@ def viewAllSites(stdscr :curses.window, userEntries: list) -> None:
     for _entry in userEntries:
         displayEntry(stdscr, _entry)
         if _entry != userEntries[-1]:
-            stdscr.addstr(6, 0, "Press any key to view the next entry.")
+            stdscr.addstr(7, 0, "Press any key to view the next entry.")
             stdscr.getch()
         else:
             break
     if len(userEntries) == 0:
         stdscr.clear()
         stdscr.addstr(1, 0, "No entries found.")
-    stdscr.addstr(6, 0, "Press any key to return to the manager menu.")
+    stdscr.addstr(7, 0, "Press any key to return to the manager menu.")
     stdscr.refresh()
     stdscr.getch()
 

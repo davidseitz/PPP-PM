@@ -29,7 +29,8 @@ def loadFromDisk(user: str, password : str) -> list:
                 username = value["username"]
                 notes = value["notes"]
                 oldPasswords = value["oldPasswords"]
-                userEntries.append(entry(website, password, username, notes, oldPasswords))
+                timestamps = value["timestamps"]
+                userEntries.append(entry(website, password, username, timestamps, notes, oldPasswords))
         except json.JSONDecodeError:
             pass
     return userEntries
@@ -59,7 +60,7 @@ def loadEntryFromFile(filepath: str, userEntries: list) -> list:
             username = value["username"]
             notes = value["notes"]
             oldPasswords = value["oldPasswords"]
-            userEntries.append(entry(website, password, username, notes, oldPasswords))
+            userEntries.append(entry(website, password, username, notes=notes, oldPasswords=oldPasswords))
     except json.JSONDecodeError:
         raise ValueError("Invalid file format") from None
     return userEntries

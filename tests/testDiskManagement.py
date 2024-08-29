@@ -39,7 +39,7 @@ class TestDiskManagement(unittest.TestCase):
         """
         with open("test.json", "w") as file:
             file.write(contents)
-        self.assertEqual(loadEntryFromFile("test.json", []),[entry("x", "a", "a", "a", [])]) 
+        self.assertEqual(loadEntryFromFile("test.json", []),[entry("x", "a", "a", notes="a", oldPasswords=[])]) 
         os.remove("test.json")
 
     def testExportToDisk(self) -> None:
