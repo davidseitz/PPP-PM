@@ -50,8 +50,7 @@ class secondFactor:
 
     def validateCode(self, code: str)-> bool:
         return pyotp.totp.TOTP(self.secret).verify(code)
-    # R0201: Method could be a function disabled because it needs to be a method
-    # pylint: disable=R0201
+
     def _secret(self) -> str:
         return pyotp.random_base32()
     

@@ -20,7 +20,7 @@ class uTestHaveIBeenPwned(unittest.TestCase):
         This method tests the checkPawned method of the checkPwned.py file.
         """
         try:
-            if requests.get("https://api.pwnedpasswords.com/range/8CB22").status_code != 200:
+            if requests.get("https://api.pwnedpasswords.com/range/8CB22",timeout=10).status_code != 200:
                 self.skipTest("Pwned Passwords API is down")
             self.assertGreaterEqual(checkPawned("12345"), 1)
             self.assertEqual(checkPawned("B@eiwewirw    kd!12345a"), 0)
