@@ -5,17 +5,19 @@ import unittest
 from source.checkPassword import checkPassword, _checkLength, _checkLowercase, \
     _checkUppercase, _checkDigit, _checkSpecial
 
-class TestCheckPassword(unittest.TestCase):
+class uTestCheckPassword(unittest.TestCase):
     """
     This class contains the tests for the checkPassword.py file.
     """
     def testCheckPassword(self) -> None:
+        """
+        This method tests the checkPassword method of the checkPassword.py file.
+        """
         self.assertTrue(checkPassword("Test1234!!@sadadad42311231."))
         self.assertFalse(checkPassword("Test1234"))
         self.assertFalse(checkPassword("test1234!!@sadadad42311231."))
         self.assertFalse(checkPassword("TEST1234!!@42311231."))
         self.assertFalse(checkPassword("Test!@sadadada"))
-        
 
     def testCheckLength(self) -> None:
         self.assertTrue(_checkLength("Test1234!234"))

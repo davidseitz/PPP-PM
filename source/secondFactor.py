@@ -3,6 +3,7 @@
 import json
 import os
 #pylint: disable=import-error
+#Ignore import error because it is a third party library
 import pyotp
 #Ignore untyped third party library
 import qrcode #type: ignore

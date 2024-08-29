@@ -3,13 +3,13 @@ This file is used to run all the tests in the tests folder
 """
 import unittest
 
-from testEntry import TestEntry
+from testEntry import uTestEntry as TestEntry
 from testFindPasswords import uTestFindPasswords as TestFindPasswords
-from testCheckPwned import TestHaveIBeenPwned
-from testCheckPassword import TestCheckPassword
-from testsUserManagement import TestUserManagement
-from testDiskManagement import TestDiskManagement
-from testCryptographyManager import TestCryptographyManager
+from testCheckPwned import uTestHaveIBeenPwned as TestHaveIBeenPwned
+from testCheckPassword import uTestCheckPassword as TestCheckPassword
+from testsUserManagement import uTestUserManagement as TestUserManagement
+from testDiskManagement import uTestDiskManagement as TestDiskManagement
+from testCryptographyManager import uTestCryptographyManager as TestCryptographyManager
 from testSecondFactor import uTestSecondFactor as TestSecondFactor
 #from tests.testMenuPrototype.testMenu import testMenu
 
@@ -31,12 +31,12 @@ def testMain() -> None:
 
     #CheckPassword tests
     suite.addTest(TestCheckPassword('testCheckPassword'))
-    suite.addTest(TestCheckPassword('testCheckLength')) 
+    suite.addTest(TestCheckPassword('testCheckLength'))
     suite.addTest(TestCheckPassword('testCheckLowercase'))
     suite.addTest(TestCheckPassword('testCheckUppercase'))
     suite.addTest(TestCheckPassword('testCheckDigit'))
     suite.addTest(TestCheckPassword('testCheckSpecial'))
-    
+
     #Entry tests
     suite.addTest(TestEntry('testConstructor'))
     suite.addTest(TestEntry('testUpdatePassword'))
@@ -66,7 +66,7 @@ def testMain() -> None:
     suite.addTest(TestSecondFactor('testSecret'))
     suite.addTest(TestSecondFactor('testValidateCode'))
     suite.addTest(TestSecondFactor('testGenerateUrl'))
-    
+
     #CryptographyManager tests
     suite.addTest(TestCryptographyManager('testEncryptContent'))
     suite.addTest(TestCryptographyManager('testDecryptContent'))

@@ -3,7 +3,10 @@ This file contains the tests for the secondFactor.py file.
 """
 import unittest
 import os
+# pylint: disable=E0401
+# Ignore the error because that was done in SecondFactor.py
 import pyotp
+
 from source.userManagement import saveUser
 from source.secondFactor import secondFactor as SecondFactor
 

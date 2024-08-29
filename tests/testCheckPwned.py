@@ -7,7 +7,7 @@ import requests
 from source.checkPwned import checkPawned, hashPassword
 
 
-class TestHaveIBeenPwned(unittest.TestCase):
+class uTestHaveIBeenPwned(unittest.TestCase):
     """
     This class contains the tests for the checkPwned.py file.
     """
@@ -16,6 +16,9 @@ class TestHaveIBeenPwned(unittest.TestCase):
         self.assertEqual(hashPassword("12345"), "8CB2237D0679CA88DB6464EAC60DA96345513964")
 
     def testCheckPawned(self) -> None:
+        """
+        This method tests the checkPawned method of the checkPwned.py file.
+        """
         try:
             if requests.get("https://api.pwnedpasswords.com/range/8CB22").status_code != 200:
                 self.skipTest("Pwned Passwords API is down")
