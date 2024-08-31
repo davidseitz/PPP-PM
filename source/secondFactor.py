@@ -30,7 +30,7 @@ class secondFactor:
     def generateUrl(self)->str:
         return pyotp.totp.TOTP(self.secret).provisioning_uri(name=self.email, issuer_name='Password Manager')
 
-    def generateQrCode(self, email: str)-> None:
+    def generateQrCode(self, email: str)-> str:
         """
         This method generates a QR code for the user to scan and enable 2FA
         """
@@ -46,7 +46,9 @@ class secondFactor:
                 json.dump(user, file, indent=4)
         url = self.generateUrl()
         img = qrcode.make(url)
-        img.save(os.getcwd() + '/resources/qr.png')
+        qrfilename = os.getcwd() + '/resources/qr.png'
+        img.save(qrfilename)
+        return qrfilename
 
     def validateCode(self, code: str)-> bool:
         return pyotp.totp.TOTP(self.secret).verify(code)
