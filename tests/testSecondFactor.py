@@ -40,9 +40,11 @@ class uTestSecondFactor(unittest.TestCase):
         saveUser("test_user", "test_password")
         secondFactor = SecondFactor("test_user")
         self.assertEqual(secondFactor.secret,"")
-        secondFactor.generateQrCode("mail")
+        self.assertEqual(f"{os.getcwd()}/resources/qr.png", secondFactor.generateQrCode("mail"))
         self.assertNotEqual(secondFactor.secret, "")
         self.assertTrue(os.path.exists(f"{os.getcwd()}/resources/qr.png"))
+        
+
 
     def testSecret(self) -> None:
         """
