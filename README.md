@@ -52,5 +52,5 @@ Security Notes
 
 Contact
 
-    For any questions, issues, or suggestions, please contact seitz.david-it23@dhbw-ravensburg.de
+    For any questions, issues, or suggestions, please contact seitz.david-it23@it.dhbw-ravensburg.de
     
