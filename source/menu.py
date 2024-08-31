@@ -677,7 +677,8 @@ def main(stdscr: curses.window) -> None:
                     else:
                         stdscr.clear()
                         stdscr.addstr(1, 0, "Invalid code.")
-                        stdscr.addstr(2, 0, "Press any key to return to the Login menu.")
+                        stdscr.addstr(2, 0, "Are you're clocks synced up?")
+                        stdscr.addstr(3, 0, "Press any key to return to the Login menu.")
                         stdscr.refresh()
                         stdscr.getch()
                 if valid:
