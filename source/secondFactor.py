@@ -51,6 +51,7 @@ class secondFactor:
     def validateCode(self, code: str)-> bool:
         return pyotp.totp.TOTP(self.secret).verify(code)
 
-    def _secret(self) -> str:
+    @staticmethod
+    def _secret() -> str:
         return pyotp.random_base32()
     

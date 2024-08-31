@@ -194,7 +194,7 @@ def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) ->
             if key == ord("y"):
                 answer = True
                 break
-            elif key == ord("n"):
+            if key == ord("n"):
                 answer = False
                 break
         stdscr.refresh()
@@ -212,7 +212,7 @@ def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) ->
                 if key == ord("y"):
                     answer3 = True
                     break
-                elif key == ord("n"):
+                if key == ord("n"):
                     answer3 = False
                     break
             stdscr.refresh()
@@ -229,7 +229,7 @@ def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) ->
             if key == ord("y"):
                 answer2 = True
                 break
-            elif key == ord("n"):
+            if key == ord("n"):
                 answer2 = False
                 break
         stdscr.refresh()
@@ -247,7 +247,7 @@ def evaluatePassword(stdscr :curses.window, password: str, userEntries: list) ->
             if key == ord("y"):
                 answer4 = True
                 break
-            elif key == ord("n"):
+            if key == ord("n"):
                 answer4 = False
                 break
         stdscr.refresh()
@@ -322,8 +322,6 @@ def generatePassword(stdscr :curses.window) -> None:
             length = int(getInput(stdscr, "Enter password length: (number between 12 and 128)"))
             if 12 <= length <= 128:
                 break
-            else:
-                pass
         except ValueError:
             pass
 
@@ -416,11 +414,9 @@ def editPassword(stdscr :curses.window, username: str, password : str, userEntri
         if key == ord("y"):
             answer = True
             break
-        elif key == ord("n"):
+        if key == ord("n"):
             answer = False
             break
-        else:
-            pass
     stdscr.refresh()
     if not answer:
         userEntries.append(currentEntry)

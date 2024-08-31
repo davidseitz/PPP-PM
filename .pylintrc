@@ -15,7 +15,5 @@
  max-statements=150
  max-branches=25
  max-args=10
- [MESSAGES CONTROL]
- disable=R1723
  [MASTER]
 init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
